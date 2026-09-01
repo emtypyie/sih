@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>MediKiosk Enterprise - Patient Dashboard, Records Drive & Smart OPD Booking</title>
+  <title>MediKiosk Enterprise - Advanced Clinical Intake & Smart Hospital Gateway</title>
   
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -84,6 +84,14 @@
       border-width: 2.5px !important;
     }
 
+    .avatar-speaking {
+      animation: avatar-pulse 1.2s infinite alternate;
+    }
+    @keyframes avatar-pulse {
+      0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4); }
+      100% { transform: scale(1.04); box-shadow: 0 0 20px 6px rgba(37, 99, 235, 0.7); }
+    }
+
     #reader { border: none !important; width: 100% !important; }
     #reader video { border-radius: 14px; object-fit: cover; }
   </style>
@@ -95,17 +103,21 @@
   <!-- ========================================================================= -->
   <div class="relative w-full max-w-[440px] h-[890px] max-h-[96vh] bg-slate-900 rounded-[44px] shadow-kiosk-depth overflow-hidden border-[7px] border-slate-800 flex flex-col justify-between ring-1 ring-white/10">
 
-    <!-- Integrated Kiosk Header -->
-    <header class="bg-slate-950 text-white px-5 pt-3 pb-2.5 flex justify-between items-center text-xs font-semibold z-30 border-b border-slate-800/80">
+    <!-- Integrated Header with AI Sahayak Avatar -->
+    <header class="bg-slate-950 text-white px-4 pt-3 pb-2.5 flex justify-between items-center text-xs font-semibold z-30 border-b border-slate-800/80">
       <div class="flex items-center gap-2">
-        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+        <div id="ai-avatar" class="w-8 h-8 rounded-full bg-gradient-to-tr from-brand-600 via-indigo-500 to-ayush-500 p-0.5 flex items-center justify-center cursor-pointer shadow" onclick="triggerVoicePrompt()" title="Tap to listen to AI Sahayak">
+          <div class="w-full h-full bg-slate-900 rounded-full flex items-center justify-center text-xs text-white">
+            <i class="fa-solid fa-robot text-brand-400"></i>
+          </div>
+        </div>
         <div>
-          <span class="tracking-tight text-white font-black text-[11px] uppercase">MediKiosk Enterprise</span>
+          <span class="tracking-tight text-white font-black text-[11px] uppercase">MediKiosk Core</span>
           <span class="text-[9px] text-emerald-400 font-mono ml-1">#ND-01</span>
         </div>
       </div>
 
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-1.5">
         <button id="senior-btn" onclick="toggleSeniorMode()" class="px-2 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 border border-amber-400/30 rounded-lg text-[10px] font-bold flex items-center gap-1 transition">
           <i class="fa-solid fa-glasses"></i>
           <span id="senior-label">Large Font</span>
@@ -120,7 +132,7 @@
       </div>
     </header>
 
-    <!-- Main Viewport -->
+    <!-- Main Screen Viewport -->
     <main id="screen-viewport" class="flex-1 overflow-y-auto hide-scrollbar relative p-4 flex flex-col justify-between bg-slate-100">
 
       <!-- SCREEN 1: LANDING PAGE -->
@@ -266,7 +278,7 @@
         </div>
       </section>
 
-      <!-- SCREEN 4: IDENTIFICATION & AUTH -->
+      <!-- SCREEN 4: PATIENT IDENTIFICATION & AUTH (UPDATED WITH FORGOT OPTION) -->
       <section id="screen-auth" class="screen-container hidden flex-1 flex flex-col justify-between">
         <div>
           <div class="flex items-center gap-2 mb-3">
@@ -278,28 +290,51 @@
           </div>
 
           <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3">
-            <div class="flex bg-slate-100 p-1 rounded-xl gap-1 text-[11px] font-bold">
+            <div class="flex bg-slate-100 p-1 rounded-xl gap-1 text-[11px] font-bold" id="auth-tabs-wrapper">
               <button class="flex-1 py-1.5 rounded-lg bg-white text-brand-700 shadow-sm" id="tab-login" onclick="switchAuthTab('login')" data-i18n="abhaLoginTab">ABHA Login</button>
               <button class="flex-1 py-1.5 rounded-lg text-slate-500" id="tab-register" onclick="switchAuthTab('register')" data-i18n="createAbhaTab">New ABHA</button>
             </div>
 
+            <!-- 1. ABHA Login Form with Forgot Link -->
             <div id="form-abha-login" class="space-y-2.5">
               <div>
                 <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="enterAbha">ABHA Number / Mobile</label>
                 <input type="text" id="input-abha-val" value="91-4521-8840-1234" class="w-full h-10 px-3 border border-slate-300 rounded-xl text-xs bg-slate-50 font-mono font-bold text-slate-800 focus:bg-white focus:outline-none focus:border-brand-600" />
               </div>
+              
+              <!-- Forgot Details Option Link -->
+              <div class="flex justify-between items-center text-[10px]">
+                <span class="text-slate-400">OTP authentication</span>
+                <span class="font-bold text-brand-600 hover:underline cursor-pointer" onclick="switchAuthTab('aadhaar-forgot')">Forgot details? Login with Aadhaar</span>
+              </div>
+
               <button onclick="submitAuth('abha')" class="btn-touch w-full py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-xl shadow transition" data-i18n="authVerifyBtn">
                 Verify & Continue
               </button>
             </div>
 
+            <!-- 2. New ABHA Form -->
             <div id="form-abha-create" class="space-y-2.5 hidden">
               <div>
-                <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="enterGovId">12-Digit Identity Identifier</label>
+                <label class="block text-[11px] font-bold text-slate-700 mb-1">Enter 12-Digit Aadhaar Identifier</label>
                 <input type="password" maxlength="12" placeholder="•••• •••• ••••" class="w-full h-10 px-3 border border-slate-300 rounded-xl text-xs bg-slate-50 font-mono font-bold text-slate-800 focus:bg-white focus:outline-none focus:border-brand-600" />
               </div>
               <button onclick="submitAuth('create')" class="btn-touch w-full py-2.5 bg-ayush-600 hover:bg-ayush-700 text-white text-xs font-bold rounded-xl shadow transition" data-i18n="generateAbhaBtn">
                 Generate Instant ABHA
+              </button>
+            </div>
+
+            <!-- 3. Aadhaar Forgot / Recovery Form -->
+            <div id="form-aadhaar-forgot" class="space-y-2.5 hidden">
+              <div>
+                <label class="block text-[11px] font-bold text-slate-700 mb-1">Enter Aadhaar to Retrieve ABHA</label>
+                <input type="password" maxlength="12" placeholder="Enter 12-digit Aadhaar" class="w-full h-10 px-3 border border-slate-300 rounded-xl text-xs bg-slate-50 font-mono font-bold text-slate-800 focus:bg-white focus:outline-none focus:border-brand-600" />
+              </div>
+              <div class="text-[10px] text-brand-600 font-bold hover:underline cursor-pointer" onclick="switchAuthTab('login')">
+                &larr; Back to ABHA Login
+              </div>
+              <button onclick="submitAuth('aadhaar')" class="btn-touch w-full py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-xl shadow transition">
+                Send Aadhaar OTP & Verify
               </button>
             </div>
           </div>
@@ -317,7 +352,7 @@
         </div>
       </section>
 
-      <!-- SCREEN 5: DEMOGRAPHICS & VITALS -->
+      <!-- SCREEN 5: DEMOGRAPHICS (UPDATED: WITH ABHA DISPLAY & NO VITALS BOX) -->
       <section id="screen-demographics" class="screen-container hidden flex-1 flex flex-col justify-between">
         <div>
           <div class="flex items-center gap-2 mb-3">
@@ -329,6 +364,12 @@
           </div>
 
           <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm space-y-2.5 text-xs">
+            <!-- ABHA Number Display Field -->
+            <div id="demo-abha-container">
+              <label class="block text-[10px] font-bold text-slate-600 mb-0.5">ABHA Identifier / Status</label>
+              <input id="demo-abha-val" type="text" value="91-4521-8840-1234" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl font-mono font-bold text-slate-800 tracking-wider focus:outline-none" />
+            </div>
+
             <div>
               <label class="block text-[10px] font-bold text-slate-600 mb-0.5" data-i18n="fullName">Full Name</label>
               <input id="demo-name" type="text" value="Rajesh Kumar" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-800 focus:outline-none" />
@@ -346,20 +387,6 @@
                   <option value="Female">Female</option>
                   <option value="Other">Other</option>
                 </select>
-              </div>
-            </div>
-
-            <div class="p-2.5 bg-blue-50/70 border border-blue-200 rounded-xl space-y-1.5">
-              <span class="text-[10px] font-extrabold text-brand-800 uppercase block" data-i18n="vitalsHeader">Kiosk Vitals (Optional)</span>
-              <div class="grid grid-cols-2 gap-2 text-[10px]">
-                <div>
-                  <span class="text-slate-500 block">BP (Systolic/Dia)</span>
-                  <input type="text" id="demo-bp" value="150/100" class="w-full p-1.5 bg-white border border-slate-300 rounded-lg font-mono font-bold" />
-                </div>
-                <div>
-                  <span class="text-slate-500 block">SpO2 / Pulse</span>
-                  <input type="text" id="demo-pulse" value="97% | 88 bpm" class="w-full p-1.5 bg-white border border-slate-300 rounded-lg font-mono font-bold" />
-                </div>
               </div>
             </div>
           </div>
@@ -410,6 +437,7 @@
           </div>
         </div>
 
+        <!-- Directly navigates to Interview without Body Mapper -->
         <button onclick="navigateTo('screen-interview')" class="btn-touch w-full py-3.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-md text-xs transition">
           <span data-i18n="startIntake">Proceed to Adaptive Intake</span> &rarr;
         </button>
@@ -461,18 +489,19 @@
         </div>
       </section>
 
-      <!-- SCREEN 8: ALLERGIES, SURGERIES & LIFESTYLE -->
+      <!-- SCREEN 8: ALLERGIES, VITALS (BP/SUGAR/PULSE) & LIFESTYLE (UPDATED) -->
       <section id="screen-extended-history" class="screen-container hidden flex-1 flex flex-col justify-between">
         <div>
           <div class="flex items-center gap-2 mb-2">
             <button onclick="navigateTo('screen-interview')" class="w-8 h-8 rounded-xl bg-white border border-slate-200 text-slate-700 flex items-center justify-center text-xs shadow-sm"><i class="fa-solid fa-arrow-left"></i></button>
             <div>
-              <h2 class="text-sm font-black text-slate-900" data-i18n="allergiesHeader">Allergies, Surgery & Lifestyle</h2>
-              <p class="text-[10px] text-slate-500" data-i18n="allergiesSub">Past and personal medical history</p>
+              <h2 class="text-sm font-black text-slate-900">Allergies, Vitals & Lifestyle</h2>
+              <p class="text-[10px] text-slate-500">Biomarkers and personal medical history</p>
             </div>
           </div>
 
           <div class="space-y-2 max-h-[460px] overflow-y-auto hide-scrollbar text-xs">
+            <!-- 1. Allergies Module -->
             <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm space-y-1.5">
               <p class="text-[10px] font-black text-rose-700 uppercase tracking-wide flex items-center gap-1">
                 <i class="fa-solid fa-hand-dots"></i> <span data-i18n="allergyTitle">1. Known Drug & Food Allergies</span>
@@ -497,16 +526,31 @@
               </div>
             </div>
 
+            <!-- 2. Replaced Past Surgeries with BP, Sugar & Pulse Vitals Module -->
             <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm space-y-1.5">
               <p class="text-[10px] font-black text-brand-700 uppercase tracking-wide flex items-center gap-1">
-                <i class="fa-solid fa-scissors"></i> <span data-i18n="surgeryTitle">2. Past Surgeries / Hospitalizations</span>
+                <i class="fa-solid fa-heart-pulse text-brand-600"></i> <span>2. Blood Pressure, Sugar & Pulse</span>
               </p>
-              <input type="text" id="input-surgeries" value="Appendectomy (2022), Cataract Surgery (2023)" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:outline-none" />
+              <div class="grid grid-cols-3 gap-1.5 text-[10px]">
+                <div>
+                  <span class="text-slate-500 block mb-0.5">BP (mmHg)</span>
+                  <input type="text" id="vitals-bp" value="150/100" class="w-full p-1.5 bg-slate-50 border border-slate-300 rounded-lg font-mono font-bold text-slate-800" />
+                </div>
+                <div>
+                  <span class="text-slate-500 block mb-0.5">Blood Sugar</span>
+                  <input type="text" id="vitals-sugar" value="142 mg/dL" class="w-full p-1.5 bg-slate-50 border border-slate-300 rounded-lg font-mono font-bold text-slate-800" />
+                </div>
+                <div>
+                  <span class="text-slate-500 block mb-0.5">SpO2 / Pulse</span>
+                  <input type="text" id="vitals-pulse" value="97% | 88 bpm" class="w-full p-1.5 bg-slate-50 border border-slate-300 rounded-lg font-mono font-bold text-slate-800" />
+                </div>
+              </div>
             </div>
 
+            <!-- 3. Lifestyle Pattern -->
             <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm space-y-1.5">
               <p class="text-[10px] font-black text-emerald-700 uppercase tracking-wide flex items-center gap-1">
-                <i class="fa-solid fa-heart-pulse"></i> <span data-i18n="lifestyleTitle">3. Diet & Sleep Pattern</span>
+                <i class="fa-solid fa-leaf"></i> <span data-i18n="lifestyleTitle">3. Diet & Sleep Pattern</span>
               </p>
               <div class="grid grid-cols-2 gap-2 text-[10px]">
                 <div>
@@ -595,62 +639,46 @@
         <div>
           <div class="flex items-center justify-between mb-2">
             <button onclick="navigateTo('screen-ros')" class="w-8 h-8 rounded-xl bg-white border border-slate-200 text-slate-700 flex items-center justify-center text-xs shadow-sm"><i class="fa-solid fa-arrow-left"></i></button>
-            <h2 class="text-xs font-black text-slate-900 uppercase" data-i18n="ayushParikshaHeader">AYUSH Dashavidha Pariksha</h2>
+            <h2 class="text-xs font-black text-slate-900 uppercase">AYUSH Prakriti Assessment</h2>
             <span class="text-[9px] font-bold bg-ayush-100 text-ayush-800 px-2 py-0.5 rounded-full">Ayurveda</span>
           </div>
 
-          <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm max-h-[440px] overflow-y-auto hide-scrollbar space-y-2.5 text-xs">
+          <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm max-h-[440px] overflow-y-auto hide-scrollbar space-y-3 text-xs">
             <div>
-              <label class="block text-[10px] font-bold text-slate-700 mb-0.5">Prakriti (Body Constitution)</label>
-              <select id="ayush-prakriti" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-800 text-xs">
-                <option value="Vata-Pitta">Vata-Pitta (Lean build, active)</option>
-                <option value="Pitta-Kapha">Pitta-Kapha (Moderate build, high metabolism)</option>
-                <option value="Kapha-Vata">Kapha-Vata (Broad frame, steady)</option>
-              </select>
-            </div>
-
-            <div class="grid grid-cols-2 gap-2">
-              <div>
-                <label class="block text-[10px] font-bold text-slate-700 mb-0.5">Agni (Digestive Fire)</label>
-                <select id="ayush-agni" class="w-full p-1.5 bg-slate-50 border border-slate-300 rounded-lg font-bold text-slate-800 text-[11px]">
-                  <option value="Vishama Agni">Vishama (Irregular/Vata)</option>
-                  <option value="Tikshna Agni">Tikshna (Sharp/Pitta)</option>
-                  <option value="Sama Agni">Sama (Balanced)</option>
-                </select>
-              </div>
-              <div>
-                <label class="block text-[10px] font-bold text-slate-700 mb-0.5">Koshtha (Bowel)</label>
-                <select id="ayush-koshtha" class="w-full p-1.5 bg-slate-50 border border-slate-300 rounded-lg font-bold text-slate-800 text-[11px]">
-                  <option value="Krura Koshtha">Krura (Constipated)</option>
-                  <option value="Mrindu Koshtha">Mrindu (Soft/Loose)</option>
-                  <option value="Madhyama Koshtha">Madhyama (Regular)</option>
-                </select>
+              <p class="font-black text-slate-800 mb-1.5 text-[11px]">1. Weather Sensitivity (Prakriti)</p>
+              <div class="grid grid-cols-3 gap-1.5 text-center text-[10px] font-bold">
+                <div onclick="selectPrakritiTrait('vata')" class="p-2 bg-slate-50 border border-slate-200 hover:border-brand-500 rounded-xl cursor-pointer">
+                  <i class="fa-solid fa-wind text-sky-500 text-base mb-1 block"></i> Cold & Dry (Vata)
+                </div>
+                <div onclick="selectPrakritiTrait('pitta')" class="p-2 bg-slate-50 border border-slate-200 hover:border-brand-500 rounded-xl cursor-pointer">
+                  <i class="fa-solid fa-sun text-amber-500 text-base mb-1 block"></i> Hot & Sun (Pitta)
+                </div>
+                <div onclick="selectPrakritiTrait('kapha')" class="p-2 bg-slate-50 border border-slate-200 hover:border-brand-500 rounded-xl cursor-pointer">
+                  <i class="fa-solid fa-cloud-rain text-emerald-500 text-base mb-1 block"></i> Damp & Cold (Kapha)
+                </div>
               </div>
             </div>
 
             <div>
-              <label class="block text-[10px] font-bold text-slate-700 mb-0.5">Vikriti (Current Imbalance)</label>
-              <select id="ayush-vikriti" class="w-full p-1.5 bg-slate-50 border border-slate-300 rounded-lg font-bold text-slate-800 text-[11px]">
-                <option value="Pitta Vriddhi (Inflammatory/Heat)">Pitta Vriddhi (Inflammation / Heat)</option>
-                <option value="Vata Vriddhi (Pain/Dryness)">Vata Vriddhi (Pain / Spasm)</option>
-                <option value="Kapha Vriddhi (Congestion)">Kapha Vriddhi (Heaviness / Congestion)</option>
+              <p class="font-black text-slate-800 mb-1.5 text-[11px]">2. Nature of Digestive Fire (Agni)</p>
+              <select id="ayush-agni" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-800 text-xs">
+                <option value="Vishama Agni (Irregular/Bloating)">Vishama (Irregular / Bloating - Vata)</option>
+                <option value="Tikshna Agni (Sharp/Hyperacidity)">Tikshna (Intense / Acidic - Pitta)</option>
+                <option value="Sama Agni (Balanced)">Sama (Balanced & Smooth)</option>
               </select>
             </div>
 
-            <div class="grid grid-cols-2 gap-2">
-              <div>
-                <label class="block text-[10px] font-bold text-slate-700 mb-0.5">Sara (Tissue Essence)</label>
-                <select id="ayush-sara" class="w-full p-1.5 bg-slate-50 border border-slate-300 rounded-lg font-bold text-slate-800 text-[11px]">
-                  <option value="Madhyama">Madhyama (Moderate)</option>
-                  <option value="Pravara">Pravara (Superior)</option>
-                </select>
+            <div class="p-2.5 bg-gradient-to-r from-sky-50 via-amber-50 to-emerald-50 rounded-xl border border-slate-200">
+              <span class="text-[9px] font-black uppercase text-slate-700 block mb-1">Calculated Prakriti Breakdown:</span>
+              <div class="w-full h-3 rounded-full flex overflow-hidden shadow-inner">
+                <div class="bg-sky-500 h-full" style="width: 45%;"></div>
+                <div class="bg-amber-500 h-full" style="width: 35%;"></div>
+                <div class="bg-emerald-500 h-full" style="width: 20%;"></div>
               </div>
-              <div>
-                <label class="block text-[10px] font-bold text-slate-700 mb-0.5">Sattva (Mental Strength)</label>
-                <select id="ayush-sattva" class="w-full p-1.5 bg-slate-50 border border-slate-300 rounded-lg font-bold text-slate-800 text-[11px]">
-                  <option value="Madhyama">Madhyama (Stable)</option>
-                  <option value="Pravara">Pravara (High)</option>
-                </select>
+              <div class="flex justify-between text-[9px] font-bold mt-1 font-mono">
+                <span class="text-sky-700">Vata 45%</span>
+                <span class="text-amber-700">Pitta 35%</span>
+                <span class="text-emerald-700">Kapha 20%</span>
               </div>
             </div>
           </div>
@@ -665,7 +693,7 @@
       <section id="screen-ocr" class="screen-container hidden flex-1 flex flex-col justify-between">
         <div>
           <div class="flex items-center gap-2 mb-2">
-            <button onclick="navigateTo('screen-ros')" class="w-8 h-8 rounded-xl bg-white border border-slate-200 text-slate-700 flex items-center justify-center text-xs shadow-sm"><i class="fa-solid fa-arrow-left"></i></button>
+            <button onclick="navigateTo('screen-ayush-pariksha')" class="w-8 h-8 rounded-xl bg-white border border-slate-200 text-slate-700 flex items-center justify-center text-xs shadow-sm"><i class="fa-solid fa-arrow-left"></i></button>
             <div>
               <h2 class="text-sm font-black text-slate-900" data-i18n="ocrHeader">Document OCR Intelligence</h2>
               <p class="text-[10px] text-slate-500" data-i18n="ocrSub">Digitize prior prescriptions & labs</p>
@@ -747,38 +775,35 @@
             <span class="text-[9px] bg-rose-200 text-rose-800 px-2 py-0.5 rounded-full font-bold">Escalated</span>
           </div>
 
-          <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm max-h-[380px] overflow-y-auto hide-scrollbar space-y-2 text-xs">
+          <!-- Pathya-Apathya Diet Suggestions -->
+          <div class="p-2.5 bg-amber-50 border border-amber-200 rounded-2xl mb-2 text-xs text-amber-900 space-y-1">
+            <div class="flex items-center gap-1.5 font-black text-[11px] text-amber-800">
+              <i class="fa-solid fa-utensils text-amber-600"></i>
+              <span>Pathya-Apathya (Diet & Lifestyle Copilot)</span>
+            </div>
+            <p class="text-[10px] text-amber-700">Recommended: Warm soups, ginger water &bull; Avoid: Oily, sour, excessively salty food.</p>
+          </div>
+
+          <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm max-h-[290px] overflow-y-auto hide-scrollbar space-y-2 text-xs">
             <div class="pb-1 border-b border-slate-100">
               <span class="text-[9px] font-bold text-slate-400 uppercase">1. Chief Complaint</span>
-              <p class="font-extrabold text-slate-900" id="sum-chief">Severe Chest Pain & Radiating Discomfort</p>
+              <p class="font-extrabold text-slate-900" id="sum-chief">Severe Chest Pain / Discomfort</p>
             </div>
             <div class="pb-1 border-b border-slate-100">
               <span class="text-[9px] font-bold text-slate-400 uppercase">2. History of Present Illness (SOCRATES)</span>
-              <p class="font-medium text-slate-800" id="sum-hpi">Site: Retrosternal &bull; Duration: 3 Days &bull; Radiation: Left Arm &bull; Severity: 8/10</p>
+              <p class="font-medium text-slate-800" id="sum-hpi">Site: Retrosternal &bull; Duration: 3 Days &bull; Radiation: Left Arm</p>
             </div>
             <div class="pb-1 border-b border-slate-100">
               <span class="text-[9px] font-bold text-slate-400 uppercase">3. Allergies</span>
               <p class="font-bold text-rose-700" id="sum-allergy">Penicillin Allergy</p>
             </div>
             <div class="pb-1 border-b border-slate-100">
-              <span class="text-[9px] font-bold text-slate-400 uppercase">4. Past Surgeries</span>
-              <p class="font-medium text-slate-800" id="sum-surgery">Appendectomy (2022), Cataract Surgery (2023)</p>
+              <span class="text-[9px] font-bold text-slate-400 uppercase">4. Vitals & Biomarkers</span>
+              <p class="font-medium text-slate-800" id="sum-vitals">BP: 150/100 mmHg, Sugar: 142 mg/dL, SpO2: 97%</p>
             </div>
             <div class="pb-1 border-b border-slate-100">
-              <span class="text-[9px] font-bold text-slate-400 uppercase">5. Review of Systems (ROS)</span>
-              <p class="font-medium text-slate-800" id="sum-ros">Breathlessness on Exertion, Palpitations, Acidity</p>
-            </div>
-            <div class="pb-1 border-b border-slate-100">
-              <span class="text-[9px] font-bold text-slate-400 uppercase">6. Family History</span>
-              <p class="font-medium text-slate-800" id="sum-family">Father: CAD, Mother: Diabetes</p>
-            </div>
-            <div class="pb-1 border-b border-slate-100">
-              <span class="text-[9px] font-bold text-slate-400 uppercase">7. AYUSH Dashavidha Pariksha</span>
-              <p class="font-medium text-slate-800" id="sum-ayush">Prakriti: Vata-Pitta &bull; Agni: Vishama &bull; Koshtha: Krura &bull; Vikriti: Pitta Vriddhi</p>
-            </div>
-            <div>
-              <span class="text-[9px] font-bold text-slate-400 uppercase">8. Verified ABHA Care Context</span>
-              <p class="font-mono text-brand-700 font-bold" id="sum-abha-id">Linked: 91-4521-8840-1234</p>
+              <span class="text-[9px] font-bold text-slate-400 uppercase">5. AYUSH Dashavidha Pariksha</span>
+              <p class="font-medium text-slate-800" id="sum-ayush">Prakriti: Vata-Pitta &bull; Agni: Vishama &bull; Koshtha: Krura</p>
             </div>
           </div>
         </div>
@@ -791,7 +816,6 @@
       <!-- SCREEN 13: PATIENT HEALTH DASHBOARD & RECORDS DRIVE -->
       <section id="screen-dashboard" class="screen-container hidden flex-1 flex flex-col justify-between">
         <div class="space-y-2.5">
-          <!-- Top Profile Banner -->
           <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
             <div class="flex items-center gap-2.5">
               <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-brand-600 to-indigo-600 text-white flex items-center justify-center font-black text-sm shadow">
@@ -805,7 +829,6 @@
             <span class="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">Active Record</span>
           </div>
 
-          <!-- Quick Summary Health Metrics -->
           <div class="grid grid-cols-2 gap-2 text-xs">
             <div class="bg-blue-50/70 p-2.5 rounded-2xl border border-blue-200">
               <span class="text-[9px] font-bold text-brand-700 uppercase block">Chief Condition</span>
@@ -826,8 +849,7 @@
               <span class="text-[9px] bg-slate-100 text-slate-600 font-mono px-1.5 py-0.5 rounded">3 Files</span>
             </div>
 
-            <!-- Uploaded File Items -->
-            <div class="space-y-1.5 max-h-[160px] overflow-y-auto hide-scrollbar text-xs">
+            <div class="space-y-1.5 max-h-[140px] overflow-y-auto hide-scrollbar text-xs">
               <div class="p-2 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between hover:bg-brand-50/50 transition">
                 <div class="flex items-center gap-2">
                   <i class="fa-solid fa-file-pdf text-rose-600 text-base"></i>
@@ -869,7 +891,6 @@
             </div>
           </div>
 
-          <!-- Doctor Queue Action Prompt -->
           <div class="p-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl flex items-center justify-between">
             <div>
               <p class="text-xs font-black text-brand-900">Consult with Doctor</p>
@@ -919,7 +940,7 @@
         </button>
       </section>
 
-      <!-- SCREEN 15: PRIORITY QUEUE TOKEN -->
+      <!-- SCREEN 15: PRIORITY QUEUE TOKEN, INDOOR MAP & WHATSAPP BRIDGE -->
       <section id="screen-token" class="screen-container hidden flex-1 flex flex-col justify-between">
         <div>
           <div class="flex items-center gap-2 mb-2">
@@ -927,21 +948,43 @@
             <h2 class="text-xs font-black text-slate-900 uppercase" data-i18n="tokenIssuedHeader">Priority Queue Token</h2>
           </div>
 
-          <div class="ticket-cut p-5 rounded-3xl shadow-sm text-center my-3 border-2 border-dashed border-brand-500">
-            <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider" data-i18n="tokenLabel">ABDM SMART TRIAGE TOKEN</p>
-            <p class="text-5xl font-black text-brand-700 tracking-wider my-1 font-mono" id="display-token">P-01</p>
+          <div class="ticket-cut p-4 rounded-3xl shadow-sm text-center my-2 border-2 border-dashed border-brand-500">
+            <p class="text-[9px] font-black text-slate-400 uppercase tracking-wider" data-i18n="tokenLabel">ABDM SMART TRIAGE TOKEN</p>
+            <p class="text-4xl font-black text-brand-700 tracking-wider my-0.5 font-mono" id="display-token">P-01</p>
             <p class="text-xs font-black text-rose-700 uppercase" id="display-priority">PRIORITY 1: EMERGENCY TRIAGE</p>
-            <p class="text-[10px] text-slate-500 mt-1">Assigned to: Room 14 (Kayachikitsa Emergency Desk)</p>
+            <p class="text-[10px] text-slate-600 font-bold mt-0.5">Assigned to: Room 14 (Ground Floor, East Wing)</p>
           </div>
 
-          <div class="bg-blue-50/80 border border-blue-200 p-3 rounded-2xl text-center">
-            <p class="text-xs font-bold text-brand-800" data-i18n="syncedNotice">Draft Pushed to Doctor AI Copilot</p>
-            <p class="text-[10px] text-slate-500 mt-0.5" data-i18n="syncedSub">Physician screen is pre-loaded with full clinical intake.</p>
+          <!-- Hospital Indoor Navigation Path -->
+          <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-2xl mb-2 text-xs">
+            <div class="flex justify-between items-center mb-1">
+              <span class="font-black text-slate-800 text-[10px] flex items-center gap-1">
+                <i class="fa-solid fa-map-location-dot text-brand-600"></i> Indoor Route to Room 14
+              </span>
+              <span class="text-[9px] text-emerald-600 font-bold">~40 meters</span>
+            </div>
+            <div class="flex items-center gap-1.5 text-[9px] text-slate-600 font-medium">
+              <span class="bg-brand-100 text-brand-800 px-1.5 py-0.5 rounded font-bold">Kiosk</span>
+              <span>&rarr; Straight 20m &rarr; Turn Right &rarr;</span>
+              <span class="bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-bold">Room 14</span>
+            </div>
+          </div>
+
+          <!-- WhatsApp & SMS Live Tracker Bridge -->
+          <div class="p-2.5 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center justify-between text-xs">
+            <div class="flex items-center gap-2">
+              <i class="fa-brands fa-whatsapp text-emerald-600 text-xl"></i>
+              <div>
+                <p class="font-black text-emerald-900 text-[10px]">WhatsApp Live Queue Link Sent</p>
+                <p class="text-[9px] text-emerald-700">Track remaining patients directly on phone.</p>
+              </div>
+            </div>
+            <span class="text-[9px] bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded-full font-bold">Sent</span>
           </div>
         </div>
 
-        <div class="space-y-2">
-          <button onclick="resetAndHome()" class="btn-touch w-full py-3.5 bg-brand-600 hover:bg-brand-700 text-white font-black rounded-2xl shadow-md text-xs transition">
+        <div class="space-y-2 mt-2">
+          <button onclick="resetAndHome()" class="btn-touch w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-black rounded-2xl shadow-md text-xs transition">
             <span data-i18n="finishSession">Finish & Return to Start</span>
           </button>
         </div>
@@ -1035,12 +1078,11 @@
         generateAbhaBtn: "Generate Instant ABHA",
         guestMode: "Skip ID (Emergency Guest Mode)",
         caregiverMode: "Caregiver Mode (Assisting Patient)",
-        demoTitle: "Patient Demographics & Vitals",
+        demoTitle: "Patient Demographics",
         demoSubtitle: "Confirm registration details",
         fullName: "Full Name",
         age: "Age",
         gender: "Gender",
-        vitalsHeader: "Kiosk Vitals (Optional)",
         confirmStream: "Next: Select Medical Stream",
         streamTitle: "Select Medical Stream",
         streamSubtitle: "Choose clinical evaluation methodology",
@@ -1050,10 +1092,7 @@
         tapToSpeak: "Tap to Speak (Voice AI)",
         redFlagAlert: "Clinical Triage Alert",
         nextBtn: "Continue",
-        allergiesHeader: "Allergies, Surgery & Lifestyle",
-        allergiesSub: "Past and personal medical history",
         allergyTitle: "1. Known Drug & Food Allergies",
-        surgeryTitle: "2. Past Surgeries / Hospitalizations",
         lifestyleTitle: "3. Diet & Sleep Pattern",
         diet: "Diet",
         sleep: "Sleep",
@@ -1063,7 +1102,6 @@
         rosSelect: "Check Active Symptoms:",
         familyHeader: "Family History:",
         nextStep: "Proceed",
-        ayushParikshaHeader: "AYUSH Dashavidha Pariksha",
         saveAyushBtn: "Save Pariksha & Scan Documents",
         ocrHeader: "Document OCR Intelligence",
         ocrSub: "Digitize prior prescriptions & labs",
@@ -1104,12 +1142,11 @@
         generateAbhaBtn: "त्वरित आभा बनाएं",
         guestMode: "आईडी छोड़ें (आपातकालीन गेस्ट मोड)",
         caregiverMode: "देखभालकर्ता मोड (मरीज की सहायता)",
-        demoTitle: "मरीज का विवरण और वाइटल्स",
+        demoTitle: "मरीज का विवरण",
         demoSubtitle: "पंजीकरण विवरण की पुष्टि करें",
         fullName: "पूरा नाम",
         age: "आयु",
         gender: "लिंग",
-        vitalsHeader: "कियोस्क वाइटल्स (वैकल्पिक)",
         confirmStream: "आगे: चिकित्सा पद्धति चुनें",
         streamTitle: "चिकित्सा पद्धति का चयन",
         streamSubtitle: "मूल्यांकन प्रणाली चुनें",
@@ -1119,10 +1156,7 @@
         tapToSpeak: "बोलने के लिए छुएं (वॉयस एआई)",
         redFlagAlert: "क्लिनिकल ट्राइएज चेतावनी",
         nextBtn: "आगे बढ़ें",
-        allergiesHeader: "एलर्जी, सर्जरी और जीवनशैली",
-        allergiesSub: "पिछला मेडिकल इतिहास",
         allergyTitle: "1. दवा एवं भोजन एलर्जी",
-        surgeryTitle: "2. पिछली सर्जरी / अस्पताल भर्ती",
         lifestyleTitle: "3. खान-पान एवं नींद",
         diet: "आहार",
         sleep: "नींद",
@@ -1132,7 +1166,6 @@
         rosSelect: "सक्रिय लक्षण चुनें:",
         familyHeader: "पारिवारिक इतिहास:",
         nextStep: "आगे बढ़ें",
-        ayushParikshaHeader: "आयुष दशविध परीक्षा",
         saveAyushBtn: "परीक्षा सहेजें और पर्ची स्कैन करें",
         ocrHeader: "दस्तावेज़ ओसीआर इंटेलिजेंस",
         ocrSub: "पुरानी पर्चियां और रिपोर्ट डिजिटाइज़ करें",
@@ -1178,7 +1211,6 @@
         fullName: "पूर्ण नाव",
         age: "वय",
         gender: "लिंग",
-        vitalsHeader: "तपासणी वाइटल्स",
         confirmStream: "वैद्यकीय पद्धती निवडा",
         streamTitle: "वैद्यकीय पद्धत",
         streamSubtitle: "पद्धत निवडा",
@@ -1188,10 +1220,7 @@
         tapToSpeak: "बोलण्यासाठी स्पर्श करा",
         redFlagAlert: "तातडीची सूचना",
         nextBtn: "पुढे जा",
-        allergiesHeader: "अ‍ॅलर्जी आणि शस्त्रक्रिया",
-        allergiesSub: "वैद्यकीय इतिहास",
         allergyTitle: "1. अ‍ॅलर्जी माहिती",
-        surgeryTitle: "2. मागील शस्त्रक्रिया",
         lifestyleTitle: "3. आहार आणि झोप",
         diet: "आहार",
         sleep: "झोप",
@@ -1201,7 +1230,6 @@
         rosSelect: "लक्षणे निवडा:",
         familyHeader: "कौटुंबिक इतिहास:",
         nextStep: "पुढे जा",
-        ayushParikshaHeader: "आयुष दशविध परीक्षा",
         saveAyushBtn: "परीक्षा जतन करा",
         ocrHeader: "कागदपत्र ओसीआर",
         ocrSub: "पर्चे आणि रिपोर्ट स्कॅन करा",
@@ -1247,7 +1275,6 @@
         fullName: "પૂરું નામ",
         age: "ઉંમર",
         gender: "જાતિ",
-        vitalsHeader: "વાઇટલ્સ",
         confirmStream: "તબીબી પદ્ધતિ પસંદ કરો",
         streamTitle: "તબીબી પદ્ધતિ",
         streamSubtitle: "પદ્ધતિ પસંદ કરો",
@@ -1257,10 +1284,7 @@
         tapToSpeak: "બોલવા માટે ટચ કરો",
         redFlagAlert: "તાત્કાલિક એલર્ટ",
         nextBtn: "આગળ વધો",
-        allergiesHeader: "એલર્જી અને સર્જરી",
-        allergiesSub: "મેડિકલ હિસ્ટ્રી",
         allergyTitle: "1. એલર્જી વિગત",
-        surgeryTitle: "2. અગાઉની સર્જરી",
         lifestyleTitle: "3. આહાર અને ઊંઘ",
         diet: "ખોરાક",
         sleep: "ઊંઘ",
@@ -1270,7 +1294,6 @@
         rosSelect: "લક્ષણો પસંદ કરો:",
         familyHeader: "પારિવારિક હિસ્ટ્રી:",
         nextStep: "આગળ વધો",
-        ayushParikshaHeader: "આયુષ દશવિધ પરીક્ષા",
         saveAyushBtn: "પરીક્ષા સેવ કરો",
         ocrHeader: "દસ્તાવેજ ઓસીઆર",
         ocrSub: "રિપોર્ટ સ્કેન કરો",
@@ -1316,7 +1339,6 @@
         fullName: "முழு பெயர்",
         age: "வயது",
         gender: "பாலினம்",
-        vitalsHeader: "உடல் அளவீடுகள்",
         confirmStream: "மருத்துவ முறையைத் தேர்வுசெய்க",
         streamTitle: "மருத்துவ முறை",
         streamSubtitle: "முறையைத் தேர்ந்தெடுக்கவும்",
@@ -1326,10 +1348,7 @@
         tapToSpeak: "பேச தொடவும் (Voice AI)",
         redFlagAlert: "அவசர எச்சரிக்கை",
         nextBtn: "தொடரவும்",
-        allergiesHeader: "ஒவ்வாமை & அறுவை சிகிச்சை",
-        allergiesSub: "முந்தைய வரலாறு",
         allergyTitle: "1. ஒவ்வாமை விவரம்",
-        surgeryTitle: "2. முந்தைய அறுவை சிகிச்சைகள்",
         lifestyleTitle: "3. உணவு மற்றும் தூக்கம்",
         diet: "உணவு",
         sleep: "தூக்கம்",
@@ -1339,7 +1358,6 @@
         rosSelect: "அறிகுறிகளைத் தேர்ந்தெடுக்கவும்:",
         familyHeader: "குடும்ப வரலாறு:",
         nextStep: "தொடரவும்",
-        ayushParikshaHeader: "ஆயுஷ் பரிசோதனை",
         saveAyushBtn: "சேமிக்கவும்",
         ocrHeader: "ஆவண ஸ்கேனர்",
         ocrSub: "மருத்துவ சீட்டை ஸ்கேன் செய்க",
@@ -1385,7 +1403,6 @@
         fullName: "పూర్తి పేరు",
         age: "వయస్సు",
         gender: "లింగం",
-        vitalsHeader: "వైటల్స్",
         confirmStream: "వైద్య విధానాన్ని ఎంచుకోండి",
         streamTitle: "వైద్య విధానం",
         streamSubtitle: "విధానాన్ని ఎంచుకోండి",
@@ -1395,10 +1412,7 @@
         tapToSpeak: "మాట్లాడటానికి తాకండి",
         redFlagAlert: "అత్యవసర హెచ్చరిక",
         nextBtn: "కొనసాగించండి",
-        allergiesHeader: "అలెర్జీలు & శస్త్రచికిత్సలు",
-        allergiesSub: "మునుపటి చరిత్ర",
         allergyTitle: "1. అలెర్జీ వివరాలు",
-        surgeryTitle: "2. మునుపటి సర్జరీలు",
         lifestyleTitle: "3. ఆహారం మరియు నిద్ర",
         diet: "ఆహారం",
         sleep: "నిద్ర",
@@ -1408,7 +1422,6 @@
         rosSelect: "లక్షణాలను ఎంచుకోండి:",
         familyHeader: "కుటుంబ చరిత్ర:",
         nextStep: "కొనసాగించండి",
-        ayushParikshaHeader: "ఆయుష్ పరీక్ష",
         saveAyushBtn: "భద్రపరచండి",
         ocrHeader: "డాక్యుమెంట్ స్కానర్",
         ocrSub: "ప్రిస్క్రిప్షన్ స్కాన్ చేయండి",
@@ -1454,7 +1467,6 @@
         fullName: "সম্পূর্ণ নাম",
         age: "বয়স",
         gender: "লিঙ্গ",
-        vitalsHeader: "ভাইটালস",
         confirmStream: "চিকিৎসা পদ্ধতি বেছে নিন",
         streamTitle: "চিকিৎসা পদ্ধতি",
         streamSubtitle: "পদ্ধতি নির্বাচন করুন",
@@ -1464,10 +1476,7 @@
         tapToSpeak: "কথা বলতে স্পর্শ করুন",
         redFlagAlert: "জরুরি সতর্কতা",
         nextBtn: "এগিয়ে যান",
-        allergiesHeader: "অ্যালার্জি ও সার্জারি",
-        allergiesSub: "পূর্ববর্তী ইতিহাস",
         allergyTitle: "১. অ্যালার্জি বিবরণ",
-        surgeryTitle: "২. পূর্ববর্তী সার্জারি",
         lifestyleTitle: "৩. খাদ্য ও ঘুম",
         diet: "খাদ্য",
         sleep: "ঘুম",
@@ -1477,7 +1486,6 @@
         rosSelect: "লক্ষণ নির্বাচন করুন:",
         familyHeader: "পারিবারিক ইতিহাস:",
         nextStep: "এগিয়ে যান",
-        ayushParikshaHeader: "আয়ুষ পরীক্ষা",
         saveAyushBtn: "সংরক্ষণ করুন",
         ocrHeader: "নথি ওসিআর",
         ocrSub: "প্রেসক্রিপশন স্ক্যান করুন",
@@ -1507,6 +1515,11 @@
       gender: "Male",
       stream: "ayush",
       chiefComplaint: "Severe Chest Pain / Tightness",
+      vitals: {
+        bp: "150/100 mmHg",
+        sugar: "142 mg/dL",
+        pulse: "97% | 88 bpm"
+      },
       socrates: {
         site: "Retrosternal (Center of Chest)",
         duration: "3 Days",
@@ -1514,18 +1527,15 @@
         severity: "8/10 (Severe)"
       },
       allergies: ["Penicillin Allergy"],
-      surgeries: "Appendectomy (2022), Cataract Surgery (2023)",
       diet: "Vegetarian",
       sleep: "6-7 Hours Daily",
       ros: ["Resp: Breathlessness on Exertion", "Card: Palpitations", "GI: Heartburn & Acidity"],
       family: ["Father: CAD", "Mother: Diabetes", "Hypertension"],
       ayush: {
-        prakriti: "Vata-Pitta",
+        prakriti: "Vata-Pitta (Vata 45%, Pitta 35%, Kapha 20%)",
         agni: "Vishama Agni",
         koshtha: "Krura Koshtha",
-        vikriti: "Pitta Vriddhi",
-        sara: "Madhyama",
-        sattva: "Madhyama"
+        vikriti: "Pitta Vriddhi"
       },
       ocr: {
         dx: "Type 2 DM, Hypertension",
@@ -1643,6 +1653,14 @@
         const utt = new SpeechSynthesisUtterance(text);
         utt.lang = patientState.lang === 'hi' ? 'hi-IN' : 'en-IN';
         utt.rate = patientState.isSenior ? 0.85 : 0.95;
+        
+        const avatar = document.getElementById('ai-avatar');
+        if (avatar) avatar.classList.add('avatar-speaking');
+
+        utt.onend = () => {
+          if (avatar) avatar.classList.remove('avatar-speaking');
+        };
+
         window.speechSynthesis.cancel();
         window.speechSynthesis.speak(utt);
       }
@@ -1650,7 +1668,15 @@
 
     function triggerVoicePrompt() {
       const q = interviewQuestions[currentQuestionIdx];
-      if (q) speakPrompt(q.title);
+      if (q) {
+        speakPrompt(q.title);
+      } else {
+        speakPrompt("I am MediKiosk AI Sahayak. How can I assist your health checkup today?");
+      }
+    }
+
+    function selectPrakritiTrait(trait) {
+      speakPrompt(`Recorded trait preference: ${trait}`);
     }
 
     function startVoiceInput() {
@@ -1755,17 +1781,28 @@
       const tabReg = document.getElementById('tab-register');
       const formLogin = document.getElementById('form-abha-login');
       const formReg = document.getElementById('form-abha-create');
+      const formForgot = document.getElementById('form-aadhaar-forgot');
+      const tabsWrapper = document.getElementById('auth-tabs-wrapper');
 
       if (type === 'login') {
+        tabsWrapper.classList.remove('hidden');
         tabLogin.className = "flex-1 py-1.5 rounded-lg bg-white text-brand-700 shadow-sm";
         tabReg.className = "flex-1 py-1.5 rounded-lg text-slate-500";
         formLogin.classList.remove('hidden');
         formReg.classList.add('hidden');
-      } else {
+        formForgot.classList.add('hidden');
+      } else if (type === 'register') {
+        tabsWrapper.classList.remove('hidden');
         tabReg.className = "flex-1 py-1.5 rounded-lg bg-white text-brand-700 shadow-sm";
         tabLogin.className = "flex-1 py-1.5 rounded-lg text-slate-500";
         formReg.classList.remove('hidden');
         formLogin.classList.add('hidden');
+        formForgot.classList.add('hidden');
+      } else if (type === 'aadhaar-forgot') {
+        tabsWrapper.classList.add('hidden');
+        formLogin.classList.add('hidden');
+        formReg.classList.add('hidden');
+        formForgot.classList.remove('hidden');
       }
     }
 
@@ -1773,12 +1810,22 @@
       if (type === 'guest') {
         patientState.isGuest = true;
         patientState.abha = "GUEST-EMERGENCY";
+        document.getElementById('demo-abha-container').classList.add('hidden');
       } else if (type === 'create') {
         patientState.isGuest = false;
         patientState.abha = "91-8842-1099-5566";
+        document.getElementById('demo-abha-container').classList.remove('hidden');
+        document.getElementById('demo-abha-val').value = patientState.abha;
+      } else if (type === 'aadhaar') {
+        patientState.isGuest = false;
+        patientState.abha = "91-4521-8840-1234";
+        document.getElementById('demo-abha-container').classList.remove('hidden');
+        document.getElementById('demo-abha-val').value = patientState.abha;
       } else {
         patientState.isGuest = false;
         patientState.abha = document.getElementById('input-abha-val').value;
+        document.getElementById('demo-abha-container').classList.remove('hidden');
+        document.getElementById('demo-abha-val').value = patientState.abha;
       }
       navigateTo('screen-demographics');
     }
@@ -1789,6 +1836,9 @@
     }
 
     function saveDemographicsAndNext() {
+      if (!patientState.isGuest) {
+        patientState.abha = document.getElementById('demo-abha-val').value;
+      }
       patientState.name = document.getElementById('demo-name').value;
       patientState.age = document.getElementById('demo-age').value;
       patientState.gender = document.getElementById('demo-gender').value;
@@ -1818,7 +1868,9 @@
     function saveExtendedAndNext() {
       const allergies = Array.from(document.querySelectorAll('.allergy-check:checked')).map(c => c.value);
       patientState.allergies = allergies.length ? allergies : ["No Known Drug Allergies"];
-      patientState.surgeries = document.getElementById('input-surgeries').value;
+      patientState.vitals.bp = document.getElementById('vitals-bp').value;
+      patientState.vitals.sugar = document.getElementById('vitals-sugar').value;
+      patientState.vitals.pulse = document.getElementById('vitals-pulse').value;
       patientState.diet = document.getElementById('sel-diet').value;
       patientState.sleep = document.getElementById('sel-sleep').value;
       navigateTo('screen-ros');
@@ -1839,12 +1891,7 @@
     }
 
     function saveAyushAndNext() {
-      patientState.ayush.prakriti = document.getElementById('ayush-prakriti').value;
       patientState.ayush.agni = document.getElementById('ayush-agni').value;
-      patientState.ayush.koshtha = document.getElementById('ayush-koshtha').value;
-      patientState.ayush.vikriti = document.getElementById('ayush-vikriti').value;
-      patientState.ayush.sara = document.getElementById('ayush-sara').value;
-      patientState.ayush.sattva = document.getElementById('ayush-sattva').value;
       navigateTo('screen-ocr');
     }
 
@@ -1879,11 +1926,8 @@
     function updateSummaryData() {
       document.getElementById('sum-chief').innerText = patientState.chiefComplaint;
       document.getElementById('sum-allergy').innerText = patientState.allergies.join(', ');
-      document.getElementById('sum-surgery').innerText = patientState.surgeries;
-      document.getElementById('sum-ros').innerText = patientState.ros.join(', ');
-      document.getElementById('sum-family').innerText = patientState.family.join(', ');
-      document.getElementById('sum-ayush').innerText = `Prakriti: ${patientState.ayush.prakriti} • Agni: ${patientState.ayush.agni} • Koshtha: ${patientState.ayush.koshtha} • Vikriti: ${patientState.ayush.vikriti}`;
-      document.getElementById('sum-abha-id').innerText = `Linked: ${patientState.abha}`;
+      document.getElementById('sum-vitals').innerText = `BP: ${patientState.vitals.bp}, Sugar: ${patientState.vitals.sugar}, Pulse: ${patientState.vitals.pulse}`;
+      document.getElementById('sum-ayush').innerText = `Prakriti: ${patientState.ayush.prakriti} • Agni: ${patientState.ayush.agni}`;
     }
 
     function updateDashboardData() {
@@ -1896,7 +1940,7 @@
     function previewDoc(filename) {
       document.getElementById('preview-filename').innerText = filename;
       document.getElementById('modal-preview').classList.remove('hidden');
-      speakPrompt(`Viewing document: ${filename}`);
+      speakPrompt(`Opening document: ${filename}`);
     }
 
     function closePreviewModal() {
@@ -1928,7 +1972,7 @@
         try { html5QrScanner.clear(); } catch(e){}
       }
       navigateTo('screen-token');
-      speakPrompt("Your priority token is P-01. Please proceed to Room 14.");
+      speakPrompt("Your priority token is P-01. Please proceed to Room 14. Live WhatsApp tracker link has been dispatched.");
     }
 
     function downloadFHIR() {
@@ -1952,21 +1996,6 @@
               clinicalStatus: { coding: [{ code: "active" }] },
               code: { text: patientState.chiefComplaint },
               subject: { reference: "Patient/abdm-patient-01" }
-            }
-          },
-          {
-            resource: {
-              resourceType: "AllergyIntolerance",
-              clinicalStatus: { coding: [{ code: "active" }] },
-              code: { text: patientState.allergies.join(", ") },
-              patient: { reference: "Patient/abdm-patient-01" }
-            }
-          },
-          {
-            resource: {
-              resourceType: "Observation",
-              code: { text: "Complete AYUSH Dashavidha Pariksha" },
-              valueString: JSON.stringify(patientState.ayush)
             }
           }
         ]
