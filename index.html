@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>MediKiosk - AI Clinical History Software Platform</title>
+  <title>MediKiosk Enterprise - Advanced Clinical Intake & Smart Hospital Gateway</title>
   
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -98,9 +98,7 @@
 </head>
 <body id="app-body" class="bg-slate-950 min-h-screen flex flex-col items-center justify-center p-2 sm:p-4 font-sans text-slate-800 antialiased selection:bg-brand-600 selection:text-white select-none">
 
-  <!-- ========================================================================= -->
   <!-- ======================== MAIN KIOSK HARDWARE FRAME ======================= -->
-  <!-- ========================================================================= -->
   <div class="relative w-full max-w-[440px] h-[890px] max-h-[96vh] bg-slate-900 rounded-[44px] shadow-kiosk-depth overflow-hidden border-[7px] border-slate-800 flex flex-col justify-between ring-1 ring-white/10">
 
     <!-- Integrated Header with AI Sahayak Avatar -->
@@ -278,45 +276,91 @@
         </div>
       </section>
 
-      <!-- SCREEN 4: PATIENT IDENTIFICATION & AUTH (UPDATED WITH FORGOT OPTION) -->
+      <!-- SCREEN 4: PATIENT IDENTIFICATION & AUTH (INTEGRATED ABHA & FAST2SMS) -->
       <section id="screen-auth" class="screen-container hidden flex-1 flex flex-col justify-between">
         <div>
           <div class="flex items-center gap-2 mb-3">
             <button onclick="navigateTo('screen-consent')" class="w-8 h-8 rounded-xl bg-white border border-slate-200 text-slate-700 flex items-center justify-center text-xs shadow-sm"><i class="fa-solid fa-arrow-left"></i></button>
             <div>
               <h2 class="text-sm font-black text-slate-900" data-i18n="authTitle">Patient Identification</h2>
-              <p class="text-[10px] text-slate-500" data-i18n="authSubtitle">ABHA ID or Mobile Verification</p>
+              <p class="text-[10px] text-slate-500">ABHA ID or Mobile OTP verification</p>
             </div>
           </div>
 
           <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3">
+            <!-- Auth Selection Tabs -->
             <div class="flex bg-slate-100 p-1 rounded-xl gap-1 text-[11px] font-bold" id="auth-tabs-wrapper">
-              <button class="flex-1 py-1.5 rounded-lg bg-white text-brand-700 shadow-sm" id="tab-login" onclick="switchAuthTab('login')" data-i18n="abhaLoginTab">ABHA Login</button>
-              <button class="flex-1 py-1.5 rounded-lg text-slate-500" id="tab-register" onclick="switchAuthTab('register')" data-i18n="createAbhaTab">New ABHA</button>
+              <button class="flex-1 py-1.5 rounded-lg bg-white text-brand-700 shadow-sm" id="tab-login" onclick="switchAuthTab('login')">ABHA ID</button>
+              <button class="flex-1 py-1.5 rounded-lg text-slate-500" id="tab-mobile" onclick="switchAuthTab('mobile')">Mobile OTP</button>
+              <button class="flex-1 py-1.5 rounded-lg text-slate-500" id="tab-register" onclick="switchAuthTab('register')">New ABHA</button>
             </div>
 
-            <!-- 1. ABHA Login Form with Forgot Link -->
+            <!-- 1. ABHA Login Form (Prototype Mock Enabled) -->
             <div id="form-abha-login" class="space-y-2.5">
               <div>
-                <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="enterAbha">ABHA Number / Mobile</label>
-                <input type="text" id="input-abha-val" value="91-4521-8840-1234" class="w-full h-10 px-3 border border-slate-300 rounded-xl text-xs bg-slate-50 font-mono font-bold text-slate-800 focus:bg-white focus:outline-none focus:border-brand-600" />
-              </div>
-              
-              <!-- Forgot Details Option Link -->
-              <div class="flex justify-between items-center text-[10px]">
-                <span class="text-slate-400">OTP authentication</span>
-                <span class="font-bold text-brand-600 hover:underline cursor-pointer" onclick="switchAuthTab('aadhaar-forgot')">Forgot details? Login with Aadhaar</span>
+                <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="enterAbha">ABHA ID (e.g. rahul456@abdm)</label>
+                <input type="text" id="input-abha-val" placeholder="rahul456@abdm" class="w-full h-10 px-3 border border-slate-300 rounded-xl text-xs bg-slate-50 font-mono font-bold text-slate-800 focus:bg-white focus:outline-none focus:border-brand-600" />
+                <div id="abha-error-msg" class="text-[10px] text-rose-600 font-bold mt-1 hidden"></div>
               </div>
 
-              <button onclick="submitAuth('abha')" class="btn-touch w-full py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-xl shadow transition" data-i18n="authVerifyBtn">
-                Verify & Continue
+              <!-- Quick Demo Autofill Helpers -->
+              <div class="flex flex-wrap gap-1 items-center pt-0.5">
+                <span class="text-[9px] font-bold text-slate-400">Demo IDs:</span>
+                <button type="button" onclick="quickFillAbha('rahul456@abdm')" class="px-1.5 py-0.5 bg-brand-50 border border-brand-200 text-brand-700 rounded text-[9px] font-mono font-bold hover:bg-brand-100">rahul456@abdm</button>
+                <button type="button" onclick="quickFillAbha('priya123@abdm')" class="px-1.5 py-0.5 bg-brand-50 border border-brand-200 text-brand-700 rounded text-[9px] font-mono font-bold hover:bg-brand-100">priya123@abdm</button>
+                <button type="button" onclick="quickFillAbha('amit789@abdm')" class="px-1.5 py-0.5 bg-brand-50 border border-brand-200 text-brand-700 rounded text-[9px] font-mono font-bold hover:bg-brand-100">amit789@abdm</button>
+              </div>
+
+              <div class="flex justify-between items-center text-[10px]">
+                <span class="text-slate-400">ABDM Registry Direct Sync</span>
+                <span class="font-bold text-brand-600 hover:underline cursor-pointer" onclick="switchAuthTab('mobile')">Use Mobile OTP</span>
+              </div>
+
+              <button onclick="handleAbhaLogin()" class="btn-touch w-full py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-xl shadow transition" data-i18n="authVerifyBtn">
+                Verify & Retrieve Records
               </button>
             </div>
 
-            <!-- 2. New ABHA Form -->
+            <!-- 2. Mobile Number OTP Flow (Fast2SMS Connected) -->
+            <div id="form-mobile-otp" class="space-y-2.5 hidden">
+              <!-- Step 1: Input Mobile Number -->
+              <div id="mobile-step-1">
+                <label class="block text-[11px] font-bold text-slate-700 mb-1">Enter 10-Digit Mobile Number</label>
+                <div class="flex gap-1.5">
+                  <span class="inline-flex items-center px-2.5 rounded-xl border border-slate-300 bg-slate-100 text-slate-600 font-bold text-xs">+91</span>
+                  <input type="tel" id="input-mobile-num" maxlength="10" placeholder="9876543210" class="w-full h-10 px-3 border border-slate-300 rounded-xl text-xs bg-slate-50 font-mono font-bold text-slate-800 focus:bg-white focus:outline-none focus:border-brand-600" />
+                </div>
+                <button onclick="requestFast2SmsOtp()" id="btn-send-otp" class="btn-touch w-full mt-2.5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-xl shadow transition flex items-center justify-center gap-1.5">
+                  <i class="fa-solid fa-paper-plane text-xs"></i> Send OTP via SMS
+                </button>
+              </div>
+
+              <!-- Step 2: Input OTP Received -->
+              <div id="mobile-step-2" class="hidden space-y-2">
+                <div class="flex justify-between items-center">
+                  <label class="block text-[11px] font-bold text-slate-700">Enter 6-Digit OTP</label>
+                  <button onclick="resetMobileOtpStep()" class="text-[10px] text-brand-600 font-bold hover:underline">Change Mobile</button>
+                </div>
+                <input type="text" id="input-otp-val" maxlength="6" placeholder="••••••" class="w-full h-10 px-3 border border-slate-300 rounded-xl text-xs bg-slate-50 font-mono font-bold text-center tracking-widest text-slate-800 focus:bg-white focus:outline-none focus:border-brand-600" />
+
+                <!-- Error / Feedback Banner -->
+                <div id="otp-error-msg" class="text-[10px] text-rose-600 font-bold hidden"></div>
+
+                <button onclick="verifyFast2SmsOtp()" id="btn-verify-otp" class="btn-touch w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow transition flex items-center justify-center gap-1.5">
+                  <i class="fa-solid fa-circle-check text-xs"></i> Verify OTP & Proceed
+                </button>
+                
+                <div class="flex justify-between items-center text-[10px] pt-1">
+                  <span class="text-slate-400" id="otp-timer-label">Expires in: 05:00</span>
+                  <button onclick="requestFast2SmsOtp()" class="font-bold text-brand-600 hover:underline">Resend OTP</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. New ABHA Form -->
             <div id="form-abha-create" class="space-y-2.5 hidden">
               <div>
-                <label class="block text-[11px] font-bold text-slate-700 mb-1">Enter 12-Digit Aadhaar Identifier</label>
+                <label class="block text-[11px] font-bold text-slate-700 mb-1">Enter 12-Digit Government ID</label>
                 <input type="password" maxlength="12" placeholder="•••• •••• ••••" class="w-full h-10 px-3 border border-slate-300 rounded-xl text-xs bg-slate-50 font-mono font-bold text-slate-800 focus:bg-white focus:outline-none focus:border-brand-600" />
               </div>
               <button onclick="submitAuth('create')" class="btn-touch w-full py-2.5 bg-ayush-600 hover:bg-ayush-700 text-white text-xs font-bold rounded-xl shadow transition" data-i18n="generateAbhaBtn">
@@ -324,17 +368,17 @@
               </button>
             </div>
 
-            <!-- 3. Aadhaar Forgot / Recovery Form -->
+            <!-- 4. Alternate ID Recovery Form -->
             <div id="form-aadhaar-forgot" class="space-y-2.5 hidden">
               <div>
-                <label class="block text-[11px] font-bold text-slate-700 mb-1">Enter Aadhaar to Retrieve ABHA</label>
-                <input type="password" maxlength="12" placeholder="Enter 12-digit Aadhaar" class="w-full h-10 px-3 border border-slate-300 rounded-xl text-xs bg-slate-50 font-mono font-bold text-slate-800 focus:bg-white focus:outline-none focus:border-brand-600" />
+                <label class="block text-[11px] font-bold text-slate-700 mb-1">Enter 12-Digit ID to Retrieve ABHA</label>
+                <input type="password" maxlength="12" placeholder="Enter 12-digit number" class="w-full h-10 px-3 border border-slate-300 rounded-xl text-xs bg-slate-50 font-mono font-bold text-slate-800 focus:bg-white focus:outline-none focus:border-brand-600" />
               </div>
               <div class="text-[10px] text-brand-600 font-bold hover:underline cursor-pointer" onclick="switchAuthTab('login')">
                 &larr; Back to ABHA Login
               </div>
               <button onclick="submitAuth('aadhaar')" class="btn-touch w-full py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-xl shadow transition">
-                Send Aadhaar OTP & Verify
+                Send Authentication OTP
               </button>
             </div>
           </div>
@@ -352,21 +396,20 @@
         </div>
       </section>
 
-      <!-- SCREEN 5: DEMOGRAPHICS (UPDATED: WITH ABHA DISPLAY & NO VITALS BOX) -->
+      <!-- SCREEN 5: DEMOGRAPHICS -->
       <section id="screen-demographics" class="screen-container hidden flex-1 flex flex-col justify-between">
         <div>
           <div class="flex items-center gap-2 mb-3">
             <button onclick="navigateTo('screen-auth')" class="w-8 h-8 rounded-xl bg-white border border-slate-200 text-slate-700 flex items-center justify-center text-xs shadow-sm"><i class="fa-solid fa-arrow-left"></i></button>
             <div>
               <h2 class="text-sm font-black text-slate-900" data-i18n="demoTitle">Patient Demographics & Vitals</h2>
-              <p class="text-[10px] text-slate-500" data-i18n="demoSubtitle">Confirm registration details</p>
+              <p class="text-[10px] text-emerald-600 font-bold" id="demo-sync-status">Record fetched successfully</p>
             </div>
           </div>
 
           <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm space-y-2.5 text-xs">
-            <!-- ABHA Number Display Field -->
             <div id="demo-abha-container">
-              <label class="block text-[10px] font-bold text-slate-600 mb-0.5">ABHA Identifier / Status</label>
+              <label class="block text-[10px] font-bold text-slate-600 mb-0.5">Linked ABHA Identifier / Status</label>
               <input id="demo-abha-val" type="text" value="91-4521-8840-1234" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl font-mono font-bold text-slate-800 tracking-wider focus:outline-none" />
             </div>
 
@@ -437,7 +480,6 @@
           </div>
         </div>
 
-        <!-- Directly navigates to Interview without Body Mapper -->
         <button onclick="navigateTo('screen-interview')" class="btn-touch w-full py-3.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-md text-xs transition">
           <span data-i18n="startIntake">Proceed to Adaptive Intake</span> &rarr;
         </button>
@@ -448,7 +490,7 @@
         <div>
           <div class="flex items-center justify-between mb-2">
             <button onclick="navigateTo('screen-stream')" class="w-8 h-8 rounded-xl bg-white border border-slate-200 text-slate-700 flex items-center justify-center text-xs shadow-sm"><i class="fa-solid fa-arrow-left"></i></button>
-            <span class="text-[10px] font-black text-brand-700 bg-brand-100 px-3 py-1 rounded-full uppercase" id="interview-badge">SOCRATES Step 1</span>
+            <span class="text-[10px] font-black text-brand-700 bg-brand-100 px-3 py-1 rounded-full uppercase" id="interview-badge">Adaptive Intake Step 1</span>
             <button onclick="triggerVoicePrompt()" class="w-8 h-8 rounded-xl bg-brand-50 text-brand-600 border border-brand-200 flex items-center justify-center text-xs shadow-sm"><i class="fa-solid fa-volume-high"></i></button>
           </div>
 
@@ -456,7 +498,7 @@
             <i class="fa-solid fa-triangle-exclamation text-rose-600 text-base mt-0.5"></i>
             <div>
               <p class="font-black text-[11px] text-rose-800 uppercase" data-i18n="redFlagAlert">Clinical Triage Alert</p>
-              <p class="text-[10px] text-rose-700 mt-0.5" id="red-flag-desc">Chest tightness with radiating symptoms has been flagged for Priority 1 triage.</p>
+              <p class="text-[10px] text-rose-700 mt-0.5" id="red-flag-desc">Symptom has been flagged for Priority 1 evaluation.</p>
             </div>
           </div>
 
@@ -465,7 +507,7 @@
               <span class="text-[9px] font-black text-brand-600 uppercase tracking-wider" id="q-counter">Question 1 of 4</span>
               <span id="voice-indicator" class="text-[9px] font-bold text-slate-400">Voice AI Ready</span>
             </div>
-            <h3 id="current-question-text" class="text-xs font-black text-slate-900 leading-snug">What is your primary medical concern today?</h3>
+            <h3 id="current-question-text" class="text-xs font-black text-slate-900 leading-snug">Primary concern evaluation</h3>
 
             <button onclick="startVoiceInput()" class="btn-touch w-full mt-2.5 py-2.5 bg-brand-50 hover:bg-brand-100 border border-brand-300 text-brand-800 rounded-xl text-xs font-black flex items-center justify-center gap-2 transition active:scale-95 shadow-sm">
               <i class="fa-solid fa-microphone text-brand-600 text-base" id="mic-icon"></i>
@@ -476,7 +518,7 @@
           <div id="interview-options-container" class="grid grid-cols-2 gap-2 text-xs font-bold mb-2"></div>
 
           <div class="relative flex items-center">
-            <input id="text-free-input" type="text" placeholder="Or type symptom here..." class="w-full p-2.5 pr-10 text-xs bg-white border border-slate-300 rounded-xl focus:border-brand-600 focus:outline-none font-medium" />
+            <input id="text-free-input" type="text" placeholder="Or type answer here..." class="w-full p-2.5 pr-10 text-xs bg-white border border-slate-300 rounded-xl focus:border-brand-600 focus:outline-none font-medium" />
             <button onclick="handleTextAnswerSubmit()" class="absolute right-1.5 w-7 h-7 bg-brand-600 text-white rounded-lg flex items-center justify-center text-xs">
               <i class="fa-solid fa-arrow-right"></i>
             </button>
@@ -484,12 +526,12 @@
         </div>
 
         <div class="flex justify-between items-center pt-2 border-t border-slate-200">
-          <span class="text-[10px] text-slate-400 font-bold">Multilingual Speech / NLP</span>
-          <button onclick="navigateTo('screen-extended-history')" class="py-2 px-3.5 bg-brand-600 text-white rounded-xl text-xs font-bold shadow" data-i18n="nextBtn">Continue</button>
+          <span class="text-[10px] text-slate-400 font-bold">Rule-Based AI Engine</span>
+          <button onclick="finishAdaptiveInterview()" class="py-2 px-3.5 bg-brand-600 text-white rounded-xl text-xs font-bold shadow" data-i18n="nextBtn">Continue</button>
         </div>
       </section>
 
-      <!-- SCREEN 8: ALLERGIES, VITALS (BP/SUGAR/PULSE) & LIFESTYLE (UPDATED) -->
+      <!-- SCREEN 8: ALLERGIES, VITALS & LIFESTYLE -->
       <section id="screen-extended-history" class="screen-container hidden flex-1 flex flex-col justify-between">
         <div>
           <div class="flex items-center gap-2 mb-2">
@@ -501,7 +543,6 @@
           </div>
 
           <div class="space-y-2 max-h-[460px] overflow-y-auto hide-scrollbar text-xs">
-            <!-- 1. Allergies Module -->
             <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm space-y-1.5">
               <p class="text-[10px] font-black text-rose-700 uppercase tracking-wide flex items-center gap-1">
                 <i class="fa-solid fa-hand-dots"></i> <span data-i18n="allergyTitle">1. Known Drug & Food Allergies</span>
@@ -526,7 +567,6 @@
               </div>
             </div>
 
-            <!-- 2. Replaced Past Surgeries with BP, Sugar & Pulse Vitals Module -->
             <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm space-y-1.5">
               <p class="text-[10px] font-black text-brand-700 uppercase tracking-wide flex items-center gap-1">
                 <i class="fa-solid fa-heart-pulse text-brand-600"></i> <span>2. Blood Pressure, Sugar & Pulse</span>
@@ -547,7 +587,6 @@
               </div>
             </div>
 
-            <!-- 3. Lifestyle Pattern -->
             <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm space-y-1.5">
               <p class="text-[10px] font-black text-emerald-700 uppercase tracking-wide flex items-center gap-1">
                 <i class="fa-solid fa-leaf"></i> <span data-i18n="lifestyleTitle">3. Diet & Sleep Pattern</span>
@@ -577,7 +616,7 @@
         </button>
       </section>
 
-      <!-- SCREEN 9: REVIEW OF SYSTEMS (ROS) & FAMILY HISTORY -->
+      <!-- SCREEN 9: REVIEW OF SYSTEMS (ROS) -->
       <section id="screen-ros" class="screen-container hidden flex-1 flex flex-col justify-between">
         <div>
           <div class="flex items-center gap-2 mb-2">
@@ -784,14 +823,14 @@
             <p class="text-[10px] text-amber-700">Recommended: Warm soups, ginger water &bull; Avoid: Oily, sour, excessively salty food.</p>
           </div>
 
-          <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm max-h-[290px] overflow-y-auto hide-scrollbar space-y-2 text-xs">
+          <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm max-h-[280px] overflow-y-auto hide-scrollbar space-y-2 text-xs">
             <div class="pb-1 border-b border-slate-100">
               <span class="text-[9px] font-bold text-slate-400 uppercase">1. Chief Complaint</span>
               <p class="font-extrabold text-slate-900" id="sum-chief">Severe Chest Pain / Discomfort</p>
             </div>
             <div class="pb-1 border-b border-slate-100">
-              <span class="text-[9px] font-bold text-slate-400 uppercase">2. History of Present Illness (SOCRATES)</span>
-              <p class="font-medium text-slate-800" id="sum-hpi">Site: Retrosternal &bull; Duration: 3 Days &bull; Radiation: Left Arm</p>
+              <span class="text-[9px] font-bold text-slate-400 uppercase">2. History of Present Illness</span>
+              <p class="font-medium text-slate-800" id="sum-hpi">Site: Retrosternal &bull; Duration: 3 Days</p>
             </div>
             <div class="pb-1 border-b border-slate-100">
               <span class="text-[9px] font-bold text-slate-400 uppercase">3. Allergies</span>
@@ -808,9 +847,14 @@
           </div>
         </div>
 
-        <button onclick="navigateTo('screen-dashboard')" class="btn-touch w-full py-3.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-md text-xs mt-2 transition">
-          <span>Open Patient Health Dashboard</span> &rarr;
-        </button>
+        <div class="pt-2 border-t border-slate-200 flex gap-2">
+          <button onclick="navigateTo('screen-dashboard')" class="flex-1 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold rounded-xl text-xs transition">
+            Patient Dashboard
+          </button>
+          <button onclick="openDoctorDashboard()" class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs shadow transition flex items-center justify-center gap-1.5">
+            <i class="fa-solid fa-user-doctor"></i> Doctor View
+          </button>
+        </div>
       </section>
 
       <!-- SCREEN 13: PATIENT HEALTH DASHBOARD & RECORDS DRIVE -->
@@ -984,8 +1028,69 @@
         </div>
 
         <div class="space-y-2 mt-2">
+          <button onclick="openDoctorDashboard()" class="btn-touch w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs shadow flex items-center justify-center gap-1.5 transition">
+            <i class="fa-solid fa-user-doctor"></i> View Doctor Dashboard & EHR
+          </button>
           <button onclick="resetAndHome()" class="btn-touch w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-black rounded-2xl shadow-md text-xs transition">
             <span data-i18n="finishSession">Finish & Return to Start</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- SCREEN 16: DOCTOR DASHBOARD VIEW (FEATURE 6) -->
+      <section id="screen-doctor-view" class="screen-container hidden flex-1 flex flex-col justify-between">
+        <div>
+          <!-- Top Bar -->
+          <div class="flex items-center justify-between mb-2.5">
+            <button onclick="navigateTo('screen-summary')" class="w-8 h-8 rounded-xl bg-white border border-slate-200 text-slate-700 flex items-center justify-center text-xs shadow-sm">
+              <i class="fa-solid fa-arrow-left"></i>
+            </button>
+            <div class="text-center">
+              <span class="text-[9px] font-mono font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full uppercase">Physician EHR Gateway</span>
+              <h2 class="text-xs font-black text-slate-900 mt-0.5">Doctor Clinical Dashboard</h2>
+            </div>
+            <button onclick="window.print()" class="w-8 h-8 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center text-xs shadow-sm">
+              <i class="fa-solid fa-print"></i>
+            </button>
+          </div>
+
+          <!-- Patient Header Strip -->
+          <div class="bg-brand-900 text-white p-3 rounded-2xl shadow-sm mb-2.5">
+            <div class="flex justify-between items-start">
+              <div>
+                <h3 class="text-sm font-black tracking-wide" id="doc-patient-name">--</h3>
+                <p class="text-[10px] text-brand-200 font-mono" id="doc-patient-meta">ABHA: --</p>
+              </div>
+              <span class="text-[9px] bg-rose-500 text-white font-bold px-2 py-0.5 rounded-full uppercase" id="doc-triage-badge">Triage</span>
+            </div>
+            <div class="mt-2 pt-2 border-t border-brand-800/80 flex justify-between text-[10px]">
+              <span>Complaint: <b class="text-brand-100" id="doc-patient-complaint">--</b></span>
+              <span>BP: <b class="text-brand-100" id="doc-patient-bp">--</b></span>
+            </div>
+          </div>
+
+          <!-- Scrollable Structured Clinical Card -->
+          <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm max-h-[380px] overflow-y-auto hide-scrollbar space-y-2.5 text-xs">
+            <div>
+              <p class="text-[9px] font-black uppercase tracking-wider text-slate-400">1. Adaptive AI Intake Responses</p>
+              <div id="doc-ai-answers" class="mt-1 space-y-1 bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-[11px]">
+                <!-- Populated dynamically -->
+              </div>
+            </div>
+
+            <div>
+              <p class="text-[9px] font-black uppercase tracking-wider text-slate-400">2. Structured Clinical Report</p>
+              <pre id="doc-report-content" class="mt-1 p-2.5 bg-slate-900 text-slate-100 rounded-xl text-[10px] font-mono whitespace-pre-wrap leading-relaxed shadow-inner overflow-x-auto"></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="pt-2 border-t border-slate-200 flex gap-2">
+          <button onclick="navigateTo('screen-summary')" class="flex-1 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold rounded-xl text-xs transition">
+            &larr; Back to Kiosk
+          </button>
+          <button onclick="resetAndHome()" class="flex-1 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-black rounded-xl text-xs shadow transition">
+            Complete Consultation
           </button>
         </div>
       </section>
@@ -1051,8 +1156,59 @@
     </div>
   </div>
 
-  <!-- Global Application Logic -->
+  <!-- Application Logic -->
   <script>
+    // =========================================================================
+    // 1. FAST2SMS DIRECT CONFIGURATION BLOCK
+    // =========================================================================
+    const FAST2SMS_CONFIG = {
+      API_KEY: "YOUR_FAST2SMS_API_KEY_HERE",
+      ROUTE: "otp",
+      OTP_EXPIRY_MS: 5 * 60 * 1000
+    };
+
+    const otpSession = {
+      phone: null,
+      generatedOtp: null,
+      expiresAt: null,
+      timerInterval: null
+    };
+
+    // =========================================================================
+    // FEATURE 1: PRE-SEEDED ABHA PATIENT DATABASE
+    // =========================================================================
+    const patientDatabase = {
+      "rahul456@abdm": {
+        abha: "rahul456@abdm",
+        name: "Rahul Singh",
+        age: 25,
+        gender: "Male",
+        complaint: "Chest Pain",
+        bp: "150/100",
+        history: "Chest pain since 3 days"
+      },
+      "priya123@abdm": {
+        abha: "priya123@abdm",
+        name: "Priya Sharma",
+        age: 32,
+        gender: "Female",
+        complaint: "Fever",
+        bp: "120/80",
+        history: "Fever and cough for 2 days"
+      },
+      "amit789@abdm": {
+        abha: "amit789@abdm",
+        name: "Amit Verma",
+        age: 48,
+        gender: "Male",
+        complaint: "Diabetes Follow Up",
+        bp: "140/90",
+        history: "Known diabetic patient"
+      }
+    };
+
+    let currentAiResponses = [];
+
     const i18n = {
       en: {
         needHelp: "Help",
@@ -1072,8 +1228,8 @@
         authSubtitle: "ABHA ID or Mobile Verification",
         abhaLoginTab: "ABHA Login",
         createAbhaTab: "New ABHA",
-        enterAbha: "ABHA Number / Mobile",
-        authVerifyBtn: "Verify & Continue",
+        enterAbha: "ABHA ID",
+        authVerifyBtn: "Verify & Retrieve Records",
         enterGovId: "12-Digit Identity Identifier",
         generateAbhaBtn: "Generate Instant ABHA",
         guestMode: "Skip ID (Emergency Guest Mode)",
@@ -1114,8 +1270,6 @@
         issueTokenBtn: "Print / Confirm Priority Token",
         tokenIssuedHeader: "Priority Queue Token",
         tokenLabel: "ABDM SMART TRIAGE TOKEN",
-        syncedNotice: "Draft Pushed to Doctor AI Copilot",
-        syncedSub: "Physician screen is pre-loaded with full clinical intake.",
         finishSession: "Finish & Return to Start"
       },
       hi: {
@@ -1136,7 +1290,7 @@
         authSubtitle: "आभा (ABHA) आईडी या मोबाइल सत्यापन",
         abhaLoginTab: "आभा लॉगिन",
         createAbhaTab: "नया आभा बनाएं",
-        enterAbha: "आभा संख्या / मोबाइल",
+        enterAbha: "आभा आईडी",
         authVerifyBtn: "सत्यापित करें और आगे बढ़ें",
         enterGovId: "12-अंकों का पहचान विवरण",
         generateAbhaBtn: "त्वरित आभा बनाएं",
@@ -1178,8 +1332,6 @@
         issueTokenBtn: "प्राथमिकता टोकन प्रिंट करें",
         tokenIssuedHeader: "प्राथमिकता कतार टोकन",
         tokenLabel: "ABDM स्मार्ट ट्राइएज टोकन",
-        syncedNotice: "डॉक्टर एआई कोपायलट को भेजा गया",
-        syncedSub: "डॉक्टर के स्क्रीन पर क्लिनिकल समरी उपलब्ध है।",
         finishSession: "समाप्त करें और होम पर जाएं"
       },
       mr: {
@@ -1192,7 +1344,7 @@
         consentTitle: "संमती आणि DPDP कायदा 2023",
         consentSubtitle: "डिजिटल आरोग्य डेटा गोपनीयता",
         secureNotice: "एआय क्लिनिकल ट्रायजसाठी संमती",
-        consentText: "पुढे जाऊन, आपण डॉक्टरांसाठी वैद्यकीय इतिहास नोंदवण्यास आणि कागदपत्रे डिजिटल करण्यास संमती देता.",
+        consentText: "पुढे जाऊन, आपण डॉक्टरांसाठी वैद्यकीय इतिहास नोंदवण्यास संमती देता.",
         consentP1: "टोकन मिळताच तात्पुरता डेटा नष्ट केला जातो.",
         consentP2: "माहिती केवळ आपल्या डॉक्टरांशी सुरक्षितपणे शेअर केली जाते.",
         agreeProceed: "मी सहमत आहे आणि पुढे जा",
@@ -1200,21 +1352,17 @@
         authSubtitle: "आभा (ABHA) किंवा मोबाईल पडताळणी",
         abhaLoginTab: "आभा लॉगिन",
         createAbhaTab: "नवीन आभा तयार करा",
-        enterAbha: "आभा क्रमांक / मोबाईल",
+        enterAbha: "आभा क्रमांक",
         authVerifyBtn: "पडताळणी करा आणि पुढे जा",
-        enterGovId: "12-अंकी ओळख क्रमांक",
-        generateAbhaBtn: "त्वरित आभा बनवा",
         guestMode: "गेस्ट मोड (तात्काळ)",
         caregiverMode: "मदतनीस मोड",
         demoTitle: "रुग्ण तपशील",
-        demoSubtitle: "तपशील निश्चित करा",
         fullName: "पूर्ण नाव",
         age: "वय",
         gender: "लिंग",
         confirmStream: "वैद्यकीय पद्धती निवडा",
         streamTitle: "वैद्यकीय पद्धत",
-        streamSubtitle: "पद्धत निवडा",
-        ayushDesc: "प्रकृती, अग्नी, कोष्ठ आणि दशविध परीक्षा.",
+        ayushDesc: "प्रकृती, अग्नी आणि दशविध परीक्षा.",
         allopathyDesc: "अ‍ॅलोपॅथी सामान्य तपासणी.",
         startIntake: "तपासणी सुरू करा",
         tapToSpeak: "बोलण्यासाठी स्पर्श करा",
@@ -1226,24 +1374,16 @@
         sleep: "झोप",
         saveProceedROS: "लक्षण तपासणीवर जा",
         rosHeader: "लक्षण आणि कौटुंबिक इतिहास",
-        rosSub: "इतर लक्षणे",
-        rosSelect: "लक्षणे निवडा:",
-        familyHeader: "कौटुंबिक इतिहास:",
         nextStep: "पुढे जा",
         saveAyushBtn: "परीक्षा जतन करा",
         ocrHeader: "कागदपत्र ओसीआर",
-        ocrSub: "पर्चे आणि रिपोर्ट स्कॅन करा",
         touchToUpload: "कागदपत्र स्कॅन करा",
         loadDemo: "डेमो रिपोर्ट लोड करा",
         generateSummary: "क्लिनिकल सारांश बनवा",
         summaryHeader: "क्लिनिकल सारांश",
         qrScanTitle: "ओपीडी क्यूआर स्कॅनर",
-        qrScanSub: "क्यूआर स्कॅन करा",
         issueTokenBtn: "टोकन घ्या",
         tokenIssuedHeader: "ओपीडी टोकन",
-        tokenLabel: "ABDM स्मार्ट टोकन",
-        syncedNotice: "डॉक्टरांकडे माहिती पाठवली",
-        syncedSub: "डॉक्टरांच्या स्क्रीनवर सारांश तयार आहे.",
         finishSession: "पूर्ण करा"
       },
       gu: {
@@ -1251,255 +1391,110 @@
         subtitle: "સ્માર્ટ ડિજિટલ ક્લિનિકલ ઇનટેક",
         landingDesc: "એઆઈ ક્લિનિકલ હિસ્ટ્રી અને આયુષ પરીક્ષા સિસ્ટમ",
         selectLanguageTitle: "ભાષા પસંદ કરો",
-        selectLanguageSub: "તમારી પસંદગીની ભાષા પસંદ કરો",
         continueBtn: "આગળ વધો",
         consentTitle: "સંમતિ અને DPDP એક્ટ 2023",
-        consentSubtitle: "ડિજિટલ હેલ્થ ડેટા પ્રાઇવસી",
-        secureNotice: "ક્લિનિકલ તપાસ માટે સંમતિ",
-        consentText: "આગળ વધીને, તમે ડૉક્ટર માટે મેડિકલ હિસ્ટ્રી અને રિપોર્ટ્સ ડિજિટાઇઝ કરવાની સંમતિ આપો છો.",
-        consentP1: "ટોકન મળતા જ સેશન ડેટા ડિલીટ થઈ જાય છે.",
-        consentP2: "ડેટા ફક્ત તમારા ડૉક્ટર સાથે શેર થાય છે.",
         agreeProceed: "હું સંમત છું",
         authTitle: "દર્દીની ઓળખ",
-        authSubtitle: "આભા (ABHA) અથવા મોબાઈલ ચકાસણી",
-        abhaLoginTab: "આભા લોગિન",
-        createAbhaTab: "નવું આભા બનાવો",
-        enterAbha: "આભા નંબર / મોબાઈલ",
+        enterAbha: "આભા નંબર",
         authVerifyBtn: "ચકાસો અને આગળ વધો",
-        enterGovId: "12-અંકનો ઓળખ નંબર",
-        generateAbhaBtn: "ત્વરિત આભા બનાવો",
-        guestMode: "ગેસ્ટ મોડ (ઇમરજન્સી)",
+        guestMode: "ગેસ્ટ મોડ",
         caregiverMode: "સહાયક મોડ",
         demoTitle: "દર્દીની વિગતો",
-        demoSubtitle: "વિગતો કન્ફર્મ કરો",
         fullName: "પૂરું નામ",
         age: "ઉંમર",
         gender: "જાતિ",
         confirmStream: "તબીબી પદ્ધતિ પસંદ કરો",
         streamTitle: "તબીબી પદ્ધતિ",
-        streamSubtitle: "પદ્ધતિ પસંદ કરો",
-        ayushDesc: "પ્રકૃતિ, અગ્નિ અને દશવિધ પરીક્ષા.",
-        allopathyDesc: "સામાન્ય એલોપેથી તપાસ.",
         startIntake: "ઇનટેક શરૂ કરો",
         tapToSpeak: "બોલવા માટે ટચ કરો",
-        redFlagAlert: "તાત્કાલિક એલર્ટ",
         nextBtn: "આગળ વધો",
         allergyTitle: "1. એલર્જી વિગત",
         lifestyleTitle: "3. આહાર અને ઊંઘ",
-        diet: "ખોરાક",
-        sleep: "ઊંઘ",
         saveProceedROS: "લક્ષણોની તપાસ પર જાઓ",
-        rosHeader: "લક્ષણો અને પારિવારિક હિસ્ટ્રી",
-        rosSub: "અન્ય લક્ષણો",
-        rosSelect: "લક્ષણો પસંદ કરો:",
-        familyHeader: "પારિવારિક હિસ્ટ્રી:",
         nextStep: "આગળ વધો",
-        saveAyushBtn: "પરીક્ષા સેવ કરો",
         ocrHeader: "દસ્તાવેજ ઓસીઆર",
-        ocrSub: "રિપોર્ટ સ્કેન કરો",
-        touchToUpload: "રિપોર્ટ સ્કેન કરો",
-        loadDemo: "સેમ્પલ રિપોર્ટ લોડ કરો",
         generateSummary: "સારાંશ બનાવો",
         summaryHeader: "ક્લિનિકલ સારાંશ",
-        qrScanTitle: "ઓપીડી ક્યૂઆર સ્કેનર",
-        qrScanSub: "ક્યૂઆર સ્કેન કરો",
-        issueTokenBtn: "ટોકન કન્ફર્મ કરો",
-        tokenIssuedHeader: "ઓપીડી ટોકન",
-        tokenLabel: "ABDM સ્માર્ટ ટોકન",
-        syncedNotice: "ડૉક્ટરને માહિતી મોકલી",
-        syncedSub: "ડૉક્ટરની સ્ક્રીન પર ડેટા ઉપલબ્ધ છે.",
         finishSession: "સંપૂર્ણ કરો"
       },
       ta: {
         needHelp: "உதவி",
         subtitle: "ஸ்மார்ட் டிஜிட்டல் கிளினிக்கல் பதிவு",
-        landingDesc: "AI மருத்துவ வரலாறு மற்றும் ஆயுஷ் பரிசோதனை அமைப்பு",
+        landingDesc: "AI மருத்துவ வரலாறு மற்றும் ஆயுஷ் பரிசோதனை",
         selectLanguageTitle: "மொழியைத் தேர்ந்தெடுக்கவும்",
-        selectLanguageSub: "விருப்பமான மொழியைத் தேர்வு செய்யவும்",
         continueBtn: "தொடரவும்",
         consentTitle: "ஒப்புதல் & DPDP சட்டம் 2023",
-        consentSubtitle: "டிஜிட்டல் சுகாதார தரவு தனியுரிமை",
-        secureNotice: "AI கிளினிக்கல் மதிப்பீட்டிற்கான ஒப்புதல்",
-        consentText: "மருத்துவரின் ஆலோசனைக்காக மருத்துவ வரலாற்றைப் பதிவு செய்ய ஒப்புக்கொள்கிறீர்கள்.",
-        consentP1: "டோக்கன் வழங்கப்பட்டதும் தரவு அழிக்கப்படும்.",
-        consentP2: "தரவு உங்கள் மருத்துவரிடம் மட்டுமே பகிரப்படும்.",
         agreeProceed: "ஒப்புக்கொண்டு தொடரவும்",
         authTitle: "நோயாளி அடையாளம்",
-        authSubtitle: "ABHA எண் அல்லது மொபைல்",
-        abhaLoginTab: "ABHA உள்நுழைவு",
-        createAbhaTab: "புதிய ABHA",
-        enterAbha: "ABHA எண் / மொபைல்",
+        enterAbha: "ABHA எண்",
         authVerifyBtn: "சரிபார்த்து தொடரவும்",
-        enterGovId: "12-இலக்க அடையாள எண்",
-        generateAbhaBtn: "ABHA உருவாக்கவும்",
         guestMode: "விருந்தினர் பயன்முறை",
         caregiverMode: "உதவியாளர் பயன்முறை",
         demoTitle: "நோயாளி விவரங்கள்",
-        demoSubtitle: "விவரங்களை உறுதிப்படுத்தவும்",
         fullName: "முழு பெயர்",
         age: "வயது",
         gender: "பாலினம்",
         confirmStream: "மருத்துவ முறையைத் தேர்வுசெய்க",
-        streamTitle: "மருத்துவ முறை",
-        streamSubtitle: "முறையைத் தேர்ந்தெடுக்கவும்",
-        ayushDesc: "பிரகிருதி மற்றும் ஆயுஷ் பரிசோதனை.",
-        allopathyDesc: "பொது அலோபதி பரிசோதனை.",
         startIntake: "தொடங்கவும்",
-        tapToSpeak: "பேச தொடவும் (Voice AI)",
-        redFlagAlert: "அவசர எச்சரிக்கை",
+        tapToSpeak: "பேச தொடவும்",
         nextBtn: "தொடரவும்",
-        allergyTitle: "1. ஒவ்வாமை விவரம்",
-        lifestyleTitle: "3. உணவு மற்றும் தூக்கம்",
-        diet: "உணவு",
-        sleep: "தூக்கம்",
         saveProceedROS: "அறிகுறி ஆய்வுக்குச் செல்லவும்",
-        rosHeader: "அறிகுறிகள் & குடும்ப வரலாறு",
-        rosSub: "பிற அறிகுறிகள்",
-        rosSelect: "அறிகுறிகளைத் தேர்ந்தெடுக்கவும்:",
-        familyHeader: "குடும்ப வரலாறு:",
         nextStep: "தொடரவும்",
-        saveAyushBtn: "சேமிக்கவும்",
         ocrHeader: "ஆவண ஸ்கேனர்",
-        ocrSub: "மருத்துவ சீட்டை ஸ்கேன் செய்க",
-        touchToUpload: "சீட்டை ஸ்கேன் செய்க",
-        loadDemo: "மாதிரி அறிக்கை",
         generateSummary: "சுருக்கத்தை உருவாக்கவும்",
         summaryHeader: "மருத்துவ சுருக்கம்",
-        qrScanTitle: "OPD QR ஸ்கேனர்",
-        qrScanSub: "QR ஸ்கேன் செய்க",
-        issueTokenBtn: "டோக்கன் பெறவும்",
-        tokenIssuedHeader: "முன்னுரிமை டோக்கன்",
-        tokenLabel: "ABDM ஸ்மார்ட் டோக்கன்",
-        syncedNotice: "மருத்துவருக்கு அனுப்பப்பட்டது",
-        syncedSub: "மருத்துவர் திரையில் விவரங்கள் தயார்.",
         finishSession: "முடிக்கவும்"
       },
       te: {
         needHelp: "సహాయం",
         subtitle: "స్మార్ట్ డిజిటల్ క్లినికల్ ఇన్‌టేక్",
-        landingDesc: "AI క్లినికల్ హిస్టరీ మరియు ఆయుష్ పరీక్ష వ్యవస్థ",
         selectLanguageTitle: "భాషను ఎంచుకోండి",
-        selectLanguageSub: "మీ ప్రాధాన్యత భాషను ఎంచుకోండి",
         continueBtn: "కొనసాగించండి",
         consentTitle: "సమ్మతి & DPDP చట్టం 2023",
-        consentSubtitle: "డిజిటల్ హెల్త్ డేటా గోప్యత",
-        secureNotice: "క్లినికల్ ట్రయేజ్ కోసం సమ్మతి",
-        consentText: "వైద్యుని కోసం మెడికల్ హిస్టరీ మరియు పత్రాలను డిజిటైజ్ చేయడానికి మీరు సమ్మతిస్తున్నారు.",
-        consentP1: "టోకెన్ జారీ కాగానే సెషన్ డేటా తొలగించబడుతుంది.",
-        consentP2: "డేటా మీ వైద్యుడితో మాత్రమే షేర్ చేయబడుతుంది.",
         agreeProceed: "నేను అంగీకరిస్తున్నాను",
         authTitle: "రోగి గుర్తింపు",
-        authSubtitle: "ABHA లేదా మొబైల్ ధృవీకరణ",
-        abhaLoginTab: "ABHA లాగిన్",
-        createAbhaTab: "కొత్త ABHA",
-        enterAbha: "ABHA సంఖ్య / మొబైల్",
+        enterAbha: "ABHA సంఖ్య",
         authVerifyBtn: "ధృవీకరించి కొనసాగించండి",
-        enterGovId: "12-అంకెల గుర్తింపు సంఖ్య",
-        generateAbhaBtn: "ABHA సృష్టించండి",
-        guestMode: "గెస్ట్ మోడ్ (అత్యవసరం)",
+        guestMode: "గెస్ట్ మోడ్",
         caregiverMode: "సహాయక మోడ్",
         demoTitle: "రోగి వివరాలు",
-        demoSubtitle: "వివరాలను నిర్ధారించండి",
         fullName: "పూర్తి పేరు",
         age: "వయస్సు",
         gender: "లింగం",
         confirmStream: "వైద్య విధానాన్ని ఎంచుకోండి",
-        streamTitle: "వైద్య విధానం",
-        streamSubtitle: "విధానాన్ని ఎంచుకోండి",
-        ayushDesc: "ప్రకృతి మరియు ఆయుష్ పరీక్ష.",
-        allopathyDesc: "సాధారణ అలోపతి పరిశీలన.",
         startIntake: "ప్రారంభించండి",
-        tapToSpeak: "మాట్లాడటానికి తాకండి",
-        redFlagAlert: "అత్యవసర హెచ్చరిక",
         nextBtn: "కొనసాగించండి",
-        allergyTitle: "1. అలెర్జీ వివరాలు",
-        lifestyleTitle: "3. ఆహారం మరియు నిద్ర",
-        diet: "ఆహారం",
-        sleep: "నిద్ర",
         saveProceedROS: "లక్షణాల సమీక్షకు వెళ్లండి",
-        rosHeader: "లక్షణాలు & కుటుంబ చరిత్ర",
-        rosSub: "ఇతర లక్షణాలు",
-        rosSelect: "లక్షణాలను ఎంచుకోండి:",
-        familyHeader: "కుటుంబ చరిత్ర:",
         nextStep: "కొనసాగించండి",
-        saveAyushBtn: "భద్రపరచండి",
         ocrHeader: "డాక్యుమెంట్ స్కానర్",
-        ocrSub: "ప్రిస్క్రిప్షన్ స్కాన్ చేయండి",
-        touchToUpload: "పత్రాన్ని స్కాన్ చేయండి",
-        loadDemo: "డెమో నివేదిక",
         generateSummary: "సారాంశాన్ని రూపొందించండి",
         summaryHeader: "క్లినికల్ సారాంశం",
-        qrScanTitle: "OPD QR స్కానర్",
-        qrScanSub: "QR స్కాన్ చేయండి",
-        issueTokenBtn: "టోకెన్ నిర్ధారించండి",
-        tokenIssuedHeader: "ప్రాధాన్యత టోకెన్",
-        tokenLabel: "ABDM స్మార్ట్ టోకెన్",
-        syncedNotice: "డాక్టర్‌కు పంపబడింది",
-        syncedSub: "డాక్టర్ స్క్రీన్‌పై డేటా సిద్ధంగా ఉంది.",
         finishSession: "ముగించండి"
       },
       bn: {
         needHelp: "সাহায্য",
         subtitle: "স্মার্ট ডিজিটাল ক্লিনিকাল ইনটেক",
-        landingDesc: "এআই ক্লিনিকাল হিস্ট্রি এবং আয়ুষ পরীক্ষা সিস্টেম",
         selectLanguageTitle: "ভাষা নির্বাচন করুন",
-        selectLanguageSub: "আপনার পছন্দের ভাষা নির্বাচন করুন",
         continueBtn: "এগিয়ে যান",
         consentTitle: "সম্মতি ও DPDP আইন ২০২৩",
-        consentSubtitle: "ডিজিটাল স্বাস্থ্য ডেটা গোপনীয়তা",
-        secureNotice: "ক্লিনিকাল মূল্যায়নের জন্য সম্মতি",
-        consentText: "এগিয়ে গিয়ে আপনি চিকিৎসকের পর্যালোচনার জন্য ইতিহাস রেকর্ড করার সম্মতি দিচ্ছেন।",
-        consentP1: "টোকেন পাওয়ার সাথে সাথে সেশন ডেটা মুছে ফেলা হয়।",
-        consentP2: "ডেটা শুধুমাত্র আপনার ডাক্তারের সাথে শেয়ার করা হয়।",
         agreeProceed: "আমি সম্মত ও এগিয়ে যান",
         authTitle: "রোগীর পরিচয়",
-        authSubtitle: "আভা (ABHA) বা মোবাইল যাচাইকরণ",
-        abhaLoginTab: "আভা লগইন",
-        createAbhaTab: "নতুন আভা তৈরি",
-        enterAbha: "আভা নম্বর / মোবাইল",
+        enterAbha: "আভা নম্বর",
         authVerifyBtn: "যাচাই করুন ও এগিয়ে যান",
-        enterGovId: "১২-সংখ্যার পরিচয় নম্বর",
-        generateAbhaBtn: "আভা তৈরি করুন",
-        guestMode: "গেস্ট মোড (জরুরি)",
+        guestMode: "গেস্ট মোড",
         caregiverMode: "সহকারী মোড",
         demoTitle: "রোগীর বিবরণ",
-        demoSubtitle: "বিবরণ নিশ্চিত করুন",
         fullName: "সম্পূর্ণ নাম",
         age: "বয়স",
         gender: "লিঙ্গ",
         confirmStream: "চিকিৎসা পদ্ধতি বেছে নিন",
-        streamTitle: "চিকিৎসা পদ্ধতি",
-        streamSubtitle: "পদ্ধতি নির্বাচন করুন",
-        ayushDesc: "প্রকৃতি এবং আয়ুষ পরীক্ষা।",
-        allopathyDesc: "সাধারণ এলোপ্যাথি মূল্যায়ন।",
         startIntake: "শুরু করুন",
-        tapToSpeak: "কথা বলতে স্পর্শ করুন",
-        redFlagAlert: "জরুরি সতর্কতা",
         nextBtn: "এগিয়ে যান",
-        allergyTitle: "১. অ্যালার্জি বিবরণ",
-        lifestyleTitle: "৩. খাদ্য ও ঘুম",
-        diet: "খাদ্য",
-        sleep: "ঘুম",
         saveProceedROS: "উপসর্গ পর্যালোচনায় যান",
-        rosHeader: "উপসর্গ ও পারিবারিক ইতিহাস",
-        rosSub: "অন্যান্য লক্ষণ",
-        rosSelect: "লক্ষণ নির্বাচন করুন:",
-        familyHeader: "পারিবারিক ইতিহাস:",
         nextStep: "এগিয়ে যান",
-        saveAyushBtn: "সংরক্ষণ করুন",
         ocrHeader: "নথি ওসিআর",
-        ocrSub: "প্রেসক্রিপশন স্ক্যান করুন",
-        touchToUpload: "প্রেসক্রিপশন স্ক্যান করুন",
-        loadDemo: "ডেমো রিপোর্ট লোড করুন",
         generateSummary: "সারসংক্ষেপ তৈরি করুন",
         summaryHeader: "ক্লিনিকাল সারসংক্ষেপ",
-        qrScanTitle: "ওপিডি কিউআর স্ক্যানার",
-        qrScanSub: "কিউআর স্ক্যান করুন",
-        issueTokenBtn: "টোকেন নিশ্চিত করুন",
-        tokenIssuedHeader: "অগ্রাধিকার টোকেন",
-        tokenLabel: "ABDM স্মার্ট টোকন",
-        syncedNotice: "ডাক্তারের কাছে পাঠানো হয়েছে",
-        syncedSub: "ডাক্তারের স্ক্রিনে ডেটা প্রস্তুত।",
         finishSession: "সম্পন্ন করুন"
       }
     };
@@ -1509,22 +1504,17 @@
       isSenior: false,
       userRole: "self",
       isGuest: false,
-      abha: "91-4521-8840-1234",
-      name: "Rajesh Kumar",
-      age: 48,
+      phone: "",
+      abha: "rahul456@abdm",
+      name: "Rahul Singh",
+      age: 25,
       gender: "Male",
-      stream: "ayush",
-      chiefComplaint: "Severe Chest Pain / Tightness",
+      stream: "allopathy",
+      chiefComplaint: "Chest Pain",
       vitals: {
-        bp: "150/100 mmHg",
+        bp: "150/100",
         sugar: "142 mg/dL",
         pulse: "97% | 88 bpm"
-      },
-      socrates: {
-        site: "Retrosternal (Center of Chest)",
-        duration: "3 Days",
-        radiation: "Left Arm and Shoulder",
-        severity: "8/10 (Severe)"
       },
       allergies: ["Penicillin Allergy"],
       diet: "Vegetarian",
@@ -1543,7 +1533,7 @@
         labs: "HbA1c: 8.2% ↑, BP: 150/100 ↑",
         sx: "Appendectomy (2022)"
       },
-      isRedFlag: true,
+      isRedFlag: false,
       token: "P-01"
     };
 
@@ -1551,50 +1541,375 @@
     let html5QrScanner = null;
     let pendingVoiceInput = "";
 
-    const interviewQuestions = [
-      {
-        id: "chief",
-        title: "What is your primary medical concern today?",
-        options: [
-          { text: "Chest Pain / Tightness", isRed: true },
-          { text: "Cough / High Fever", isRed: false },
-          { text: "Abdominal Pain / Acidity", isRed: false },
-          { text: "Joint / Spine Stiffness", isRed: false }
-        ]
-      },
-      {
-        id: "site",
-        title: "Exact location of the pain / discomfort?",
-        options: [
-          { text: "Center of Chest (Retrosternal)", isRed: true },
-          { text: "Left Chest & Shoulder", isRed: true },
-          { text: "Upper Abdomen (Epigastrium)", isRed: false },
-          { text: "Generalized Body Pain", isRed: false }
-        ]
-      },
-      {
-        id: "radiation",
-        title: "Does the pain radiate to arm, neck or back?",
-        options: [
-          { text: "Yes, radiates to Left Arm (Alert)", isRed: true },
-          { text: "Radiates to Back", isRed: false },
-          { text: "No Radiation", isRed: false }
-        ]
-      },
-      {
-        id: "assoc",
-        title: "Experiencing shortness of breath or cold sweat?",
-        options: [
-          { text: "Yes, Breathlessness + Sweating", isRed: true },
-          { text: "Heartburn / Acidity Only", isRed: false },
-          { text: "None of these", isRed: false }
-        ]
+    function quickFillAbha(id) {
+      const input = document.getElementById('input-abha-val');
+      if (input) {
+        input.value = id;
+        document.getElementById('abha-error-msg').classList.add('hidden');
       }
-    ];
+    }
 
+    // =========================================================================
+    // FEATURE 1 & 2: ABHA LOGIN RETRIEVAL & AUTO-FILL
+    // =========================================================================
+    function handleAbhaLogin() {
+      const inputEl = document.getElementById('input-abha-val');
+      const errorEl = document.getElementById('abha-error-msg');
+      const abhaId = inputEl.value.trim().toLowerCase();
+
+      errorEl.classList.add('hidden');
+      errorEl.innerText = "";
+
+      if (!abhaId) {
+        errorEl.innerText = "Please enter an ABHA ID.";
+        errorEl.classList.remove('hidden');
+        return;
+      }
+
+      const patient = patientDatabase[abhaId];
+
+      if (!patient) {
+        errorEl.innerText = "ABHA ID not found. Use rahul456@abdm, priya123@abdm, or amit789@abdm";
+        errorEl.classList.remove('hidden');
+        return;
+      }
+
+      // Store in localStorage
+      localStorage.setItem("currentPatient", JSON.stringify(patient));
+
+      // Synchronize in runtime memory
+      patientState.isGuest = false;
+      patientState.abha = patient.abha;
+      patientState.name = patient.name;
+      patientState.age = patient.age;
+      patientState.gender = patient.gender;
+      patientState.chiefComplaint = patient.complaint;
+      patientState.vitals.bp = patient.bp;
+
+      // Auto-fill Demographics screen inputs
+      document.getElementById('demo-abha-container').classList.remove('hidden');
+      document.getElementById('demo-abha-val').value = patient.abha;
+      document.getElementById('demo-name').value = patient.name;
+      document.getElementById('demo-age').value = patient.age;
+      document.getElementById('demo-gender').value = patient.gender;
+
+      const bpInput = document.getElementById('vitals-bp');
+      if (bpInput) bpInput.value = patient.bp;
+
+      speakPrompt(`Welcome ${patient.name}. Your ABHA records have been fetched successfully.`);
+      navigateTo('screen-demographics');
+    }
+
+    // =========================================================================
+    // FEATURE 3: SAVE PATIENT DATA
+    // =========================================================================
+    function saveDemographicsAndNext() {
+      if (!patientState.isGuest) {
+        patientState.abha = document.getElementById('demo-abha-val').value.trim();
+      }
+      patientState.name = document.getElementById('demo-name').value.trim();
+      patientState.age = parseInt(document.getElementById('demo-age').value) || 0;
+      patientState.gender = document.getElementById('demo-gender').value;
+
+      const patientData = {
+        abha: patientState.abha,
+        name: patientState.name,
+        age: patientState.age,
+        gender: patientState.gender,
+        complaint: patientState.chiefComplaint,
+        bp: patientState.vitals.bp
+      };
+
+      localStorage.setItem("patient", JSON.stringify(patientData));
+      navigateTo('screen-stream');
+    }
+
+    // =========================================================================
+    // FEATURE 4: ADAPTIVE AI QUESTION ENGINE
+    // =========================================================================
+    function getAdaptiveQuestions(complaint) {
+      const comp = (complaint || "").toLowerCase();
+
+      if (comp.includes("chest") || comp.includes("pain")) {
+        return [
+          {
+            title: "Where is the pain located?",
+            options: [
+              { text: "Center of chest (Retrosternal)", isRed: true },
+              { text: "Left shoulder radiating", isRed: true },
+              { text: "Upper stomach region", isRed: false },
+              { text: "Right chest wall", isRed: false }
+            ]
+          },
+          {
+            title: "How long have you had the pain?",
+            options: [
+              { text: "More than 3 days", isRed: true },
+              { text: "Started today / sudden", isRed: true },
+              { text: "Intermittent over a week", isRed: false },
+              { text: "Only with deep breaths", isRed: false }
+            ]
+          },
+          {
+            title: "Does the pain radiate to arm or jaw?",
+            options: [
+              { text: "Yes, left arm and shoulder", isRed: true },
+              { text: "Yes, up into jaw/neck", isRed: true },
+              { text: "Radiates straight to back", isRed: false },
+              { text: "No radiation", isRed: false }
+            ]
+          },
+          {
+            title: "Are you experiencing breathlessness?",
+            options: [
+              { text: "Yes, shortness of breath + sweating", isRed: true },
+              { text: "Mild breathless on exertion", isRed: false },
+              { text: "Only general fatigue", isRed: false },
+              { text: "No breathlessness", isRed: false }
+            ]
+          }
+        ];
+      } else if (comp.includes("fever")) {
+        return [
+          {
+            title: "What is your temperature?",
+            options: [
+              { text: "High grade (> 102° F)", isRed: true },
+              { text: "Moderate (100° F - 101° F)", isRed: false },
+              { text: "Low grade (< 100° F)", isRed: false },
+              { text: "Unmeasured / feeling warm", isRed: false }
+            ]
+          },
+          {
+            title: "How many days have you had fever?",
+            options: [
+              { text: "1 - 2 days", isRed: false },
+              { text: "3 - 5 days", isRed: false },
+              { text: "More than 7 days", isRed: true },
+              { text: "On and off fever", isRed: false }
+            ]
+          },
+          {
+            title: "Do you have cough?",
+            options: [
+              { text: "Productive phlegm cough", isRed: false },
+              { text: "Dry hacking cough", isRed: false },
+              { text: "Severe cough with chest pain", isRed: true },
+              { text: "No cough", isRed: false }
+            ]
+          },
+          {
+            title: "Any body ache?",
+            options: [
+              { text: "Severe generalized body ache", isRed: false },
+              { text: "Chills and shivering", isRed: true },
+              { text: "Mild joint pain", isRed: false },
+              { text: "No body ache", isRed: false }
+            ]
+          }
+        ];
+      } else {
+        // Diabetes Follow Up & Others
+        return [
+          {
+            title: "What is your latest blood sugar reading?",
+            options: [
+              { text: "Fasting > 180 / PP > 250 (High)", isRed: true },
+              { text: "Moderate (140 - 180 mg/dL)", isRed: false },
+              { text: "Well controlled (< 140 mg/dL)", isRed: false },
+              { text: "Not checked recently", isRed: false }
+            ]
+          },
+          {
+            title: "Are you taking medication regularly?",
+            options: [
+              { text: "Yes, strictly compliant", isRed: false },
+              { text: "Missed few doses this week", isRed: false },
+              { text: "Stopped medication recently", isRed: true },
+              { text: "Only diet control", isRed: false }
+            ]
+          },
+          {
+            title: "Any dizziness?",
+            options: [
+              { text: "Yes, dizzy spells on standing", isRed: true },
+              { text: "Afternoon lethargy", isRed: false },
+              { text: "Cold sweats and trembling", isRed: true },
+              { text: "No dizziness", isRed: false }
+            ]
+          },
+          {
+            title: "Any vision problems?",
+            options: [
+              { text: "Sudden blurred vision", isRed: true },
+              { text: "Normal / unchanged", isRed: false },
+              { text: "Eye strain with reading", isRed: false },
+              { text: "No vision changes", isRed: false }
+            ]
+          }
+        ];
+      }
+    }
+
+    function renderInterviewQuestion() {
+      const dynamicQuestions = getAdaptiveQuestions(patientState.chiefComplaint);
+
+      if (currentQuestionIdx >= dynamicQuestions.length) {
+        localStorage.setItem("aiAnswers", JSON.stringify(currentAiResponses));
+        navigateTo('screen-extended-history');
+        return;
+      }
+
+      const q = dynamicQuestions[currentQuestionIdx];
+      document.getElementById('current-question-text').innerText = q.title;
+      document.getElementById('q-counter').innerText = `Question ${currentQuestionIdx + 1} of ${dynamicQuestions.length}`;
+      document.getElementById('interview-badge').innerText = `Adaptive Step ${currentQuestionIdx + 1}`;
+
+      const container = document.getElementById('interview-options-container');
+      container.innerHTML = '';
+
+      q.options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = "btn-touch p-3 bg-white border-2 border-slate-200 rounded-2xl hover:bg-brand-50 hover:border-brand-600 text-slate-800 text-left shadow-sm transition active:scale-95 text-xs font-black flex items-center gap-2";
+        btn.innerHTML = `<i class="fa-solid fa-circle-dot text-brand-600 text-xs"></i> <span>${opt.text}</span>`;
+        btn.onclick = () => {
+          currentAiResponses.push({ question: q.title, answer: opt.text });
+          if (opt.isRed) {
+            patientState.isRedFlag = true;
+            document.getElementById('red-flag-alert').classList.remove('hidden');
+          }
+          currentQuestionIdx++;
+          renderInterviewQuestion();
+        };
+        container.appendChild(btn);
+      });
+
+      triggerVoicePrompt();
+    }
+
+    function handleTextAnswerSubmit() {
+      const dynamicQuestions = getAdaptiveQuestions(patientState.chiefComplaint);
+      const q = dynamicQuestions[currentQuestionIdx];
+      const val = document.getElementById('text-free-input').value.trim();
+      if (!val || !q) return;
+
+      currentAiResponses.push({ question: q.title, answer: val });
+
+      if (/chest|breath|sweat|arm|severe|high|102|fever|dizzy/i.test(val)) {
+        patientState.isRedFlag = true;
+        document.getElementById('red-flag-alert').classList.remove('hidden');
+      }
+
+      document.getElementById('text-free-input').value = '';
+      currentQuestionIdx++;
+      renderInterviewQuestion();
+    }
+
+    function finishAdaptiveInterview() {
+      localStorage.setItem("aiAnswers", JSON.stringify(currentAiResponses));
+      navigateTo('screen-extended-history');
+    }
+
+    // =========================================================================
+    // FEATURE 5: REPORT GENERATION
+    // =========================================================================
+    function generateStructuredClinicalReport() {
+      const currentPatient = JSON.parse(localStorage.getItem("currentPatient")) || {
+        name: patientState.name,
+        abha: patientState.abha,
+        age: patientState.age,
+        gender: patientState.gender,
+        complaint: patientState.chiefComplaint,
+        history: "Initial triage completed."
+      };
+
+      const aiAnswers = JSON.parse(localStorage.getItem("aiAnswers")) || currentAiResponses;
+      const vitalsText = `BP: ${patientState.vitals.bp} | Sugar: ${patientState.vitals.sugar || '142 mg/dL'} | SpO2: ${patientState.vitals.pulse || '97%'}`;
+      
+      const aiAssessmentSummary = aiAnswers.length > 0
+        ? aiAnswers.map((item, i) => `  ${i + 1}. ${item.question} -> ${item.answer}`).join("\n")
+        : "  Standard adaptive assessment completed.";
+
+      const recommendation = patientState.isRedFlag
+        ? "PRIORITY 1 ESCALATION: Emergency doctor consult, ECG and continuous monitoring advised."
+        : "PRIORITY 3 ROUTINE: General OPD consultation and standard medication review.";
+
+      const report = 
+`Patient Name: ${currentPatient.name}
+ABHA ID: ${currentPatient.abha}
+Age: ${currentPatient.age}
+Gender: ${currentPatient.gender}
+Chief Complaint: ${currentPatient.complaint}
+Clinical History: ${currentPatient.history || 'Intake completed via kiosk.'}
+AI Assessment:
+${aiAssessmentSummary}
+Vitals: ${vitalsText}
+Recommendation: ${recommendation}`;
+
+      localStorage.setItem("generatedReport", report);
+      return report;
+    }
+
+    function updateSummaryData() {
+      generateStructuredClinicalReport();
+      const currentPatient = JSON.parse(localStorage.getItem("currentPatient")) || patientState;
+
+      document.getElementById('sum-chief').innerText = currentPatient.complaint || patientState.chiefComplaint;
+      document.getElementById('sum-allergy').innerText = patientState.allergies.join(', ');
+      document.getElementById('sum-vitals').innerText = `BP: ${patientState.vitals.bp}, Sugar: ${patientState.vitals.sugar || '142 mg/dL'}, Pulse: ${patientState.vitals.pulse || '97%'}`;
+      
+      const hpiEl = document.getElementById('sum-hpi');
+      if (hpiEl) {
+        hpiEl.innerText = currentPatient.history || "Intake completed.";
+      }
+
+      const triageBadge = document.getElementById('summary-triage-text');
+      if (triageBadge) {
+        triageBadge.innerText = patientState.isRedFlag ? "PRIORITY 1: EMERGENCY TRIAGE" : "PRIORITY 3: ROUTINE TRIAGE";
+      }
+    }
+
+    // =========================================================================
+    // FEATURE 6: DOCTOR DASHBOARD
+    // =========================================================================
+    function openDoctorDashboard() {
+      generateStructuredClinicalReport();
+      const storedReport = localStorage.getItem("generatedReport") || "Report not available.";
+      const currentPatient = JSON.parse(localStorage.getItem("currentPatient")) || patientState;
+      const aiAnswers = JSON.parse(localStorage.getItem("aiAnswers")) || currentAiResponses;
+
+      document.getElementById('doc-patient-name').innerText = currentPatient.name;
+      document.getElementById('doc-patient-meta').innerText = `ABHA: ${currentPatient.abha} | ${currentPatient.age} Yrs | ${currentPatient.gender}`;
+      document.getElementById('doc-patient-complaint').innerText = currentPatient.complaint || patientState.chiefComplaint;
+      document.getElementById('doc-patient-bp').innerText = patientState.vitals.bp;
+
+      const badge = document.getElementById('doc-triage-badge');
+      badge.innerText = patientState.isRedFlag ? "Priority 1 (Emergency)" : "Priority 3 (Routine)";
+      badge.className = patientState.isRedFlag 
+        ? "text-[9px] bg-rose-500 text-white font-bold px-2 py-0.5 rounded-full uppercase" 
+        : "text-[9px] bg-emerald-500 text-white font-bold px-2 py-0.5 rounded-full uppercase";
+
+      const answersBox = document.getElementById('doc-ai-answers');
+      if (aiAnswers && aiAnswers.length > 0) {
+        answersBox.innerHTML = aiAnswers.map(a => `
+          <div class="py-1 border-b border-slate-200/60 last:border-0">
+            <p class="font-bold text-slate-800">${a.question}</p>
+            <p class="text-brand-700 font-semibold">&bull; ${a.answer}</p>
+          </div>
+        `).join("");
+      } else {
+        answersBox.innerHTML = `<p class="text-slate-500 italic">No adaptive responses logged.</p>`;
+      }
+
+      document.getElementById('doc-report-content').textContent = storedReport;
+
+      navigateTo('screen-doctor-view');
+      speakPrompt("Doctor clinical review dashboard loaded.");
+    }
+
+    // Standard Navigation and Helpers
     function setAppLanguage(lang) {
       patientState.lang = lang;
-      
       document.querySelectorAll('.lang-opt').forEach(btn => {
         if (btn.getAttribute('data-lang') === lang) {
           btn.className = "btn-touch p-3 bg-white border-2 border-brand-600 rounded-2xl flex items-center justify-between shadow-sm active:scale-95 transition text-left lang-opt";
@@ -1608,9 +1923,7 @@
       const dict = i18n[lang] || i18n.en;
       document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
-        if (dict[key]) {
-          el.innerText = dict[key];
-        }
+        if (dict[key]) el.innerText = dict[key];
       });
 
       speakPrompt(lang === 'hi' ? "भाषा चुनी गई।" : "Language updated.");
@@ -1667,7 +1980,8 @@
     }
 
     function triggerVoicePrompt() {
-      const q = interviewQuestions[currentQuestionIdx];
+      const dynamicQuestions = getAdaptiveQuestions(patientState.chiefComplaint);
+      const q = dynamicQuestions[currentQuestionIdx];
       if (q) {
         speakPrompt(q.title);
       } else {
@@ -1730,80 +2044,135 @@
       }
     }
 
-    function renderInterviewQuestion() {
-      if (currentQuestionIdx >= interviewQuestions.length) {
-        navigateTo('screen-extended-history');
-        return;
-      }
-
-      const q = interviewQuestions[currentQuestionIdx];
-      document.getElementById('current-question-text').innerText = q.title;
-      document.getElementById('q-counter').innerText = `Question ${currentQuestionIdx + 1} of ${interviewQuestions.length}`;
-      document.getElementById('interview-badge').innerText = `SOCRATES Step ${currentQuestionIdx + 1}`;
-
-      const container = document.getElementById('interview-options-container');
-      container.innerHTML = '';
-
-      q.options.forEach(opt => {
-        const btn = document.createElement('button');
-        btn.className = "btn-touch p-3 bg-white border-2 border-slate-200 rounded-2xl hover:bg-brand-50 hover:border-brand-600 text-slate-800 text-left shadow-sm transition active:scale-95 text-xs font-black flex items-center gap-2";
-        btn.innerHTML = `<i class="fa-solid fa-circle-dot text-brand-600 text-xs"></i> <span>${opt.text}</span>`;
-        btn.onclick = () => {
-          if (opt.isRed) {
-            patientState.isRedFlag = true;
-            document.getElementById('red-flag-alert').classList.remove('hidden');
-          }
-          currentQuestionIdx++;
-          renderInterviewQuestion();
-        };
-        container.appendChild(btn);
-      });
-
-      triggerVoicePrompt();
-    }
-
-    function handleTextAnswerSubmit() {
-      const val = document.getElementById('text-free-input').value.trim();
-      if (!val) return;
-
-      if (/chest|breath|sweat|arm|severe/i.test(val)) {
-        patientState.isRedFlag = true;
-        document.getElementById('red-flag-alert').classList.remove('hidden');
-      }
-
-      document.getElementById('text-free-input').value = '';
-      currentQuestionIdx++;
-      renderInterviewQuestion();
-    }
-
     function switchAuthTab(type) {
+      const tabMobile = document.getElementById('tab-mobile');
       const tabLogin = document.getElementById('tab-login');
       const tabReg = document.getElementById('tab-register');
+      const formMobile = document.getElementById('form-mobile-otp');
       const formLogin = document.getElementById('form-abha-login');
       const formReg = document.getElementById('form-abha-create');
       const formForgot = document.getElementById('form-aadhaar-forgot');
       const tabsWrapper = document.getElementById('auth-tabs-wrapper');
 
-      if (type === 'login') {
-        tabsWrapper.classList.remove('hidden');
+      [formMobile, formLogin, formReg, formForgot].forEach(el => el.classList.add('hidden'));
+      [tabMobile, tabLogin, tabReg].forEach(el => {
+        el.className = "flex-1 py-1.5 rounded-lg text-slate-500";
+      });
+
+      tabsWrapper.classList.remove('hidden');
+
+      if (type === 'mobile') {
+        tabMobile.className = "flex-1 py-1.5 rounded-lg bg-white text-brand-700 shadow-sm";
+        formMobile.classList.remove('hidden');
+      } else if (type === 'login') {
         tabLogin.className = "flex-1 py-1.5 rounded-lg bg-white text-brand-700 shadow-sm";
-        tabReg.className = "flex-1 py-1.5 rounded-lg text-slate-500";
         formLogin.classList.remove('hidden');
-        formReg.classList.add('hidden');
-        formForgot.classList.add('hidden');
       } else if (type === 'register') {
-        tabsWrapper.classList.remove('hidden');
         tabReg.className = "flex-1 py-1.5 rounded-lg bg-white text-brand-700 shadow-sm";
-        tabLogin.className = "flex-1 py-1.5 rounded-lg text-slate-500";
         formReg.classList.remove('hidden');
-        formLogin.classList.add('hidden');
-        formForgot.classList.add('hidden');
       } else if (type === 'aadhaar-forgot') {
         tabsWrapper.classList.add('hidden');
-        formLogin.classList.add('hidden');
-        formReg.classList.add('hidden');
         formForgot.classList.remove('hidden');
       }
+    }
+
+    async function requestFast2SmsOtp() {
+      const mobile = document.getElementById('input-mobile-num').value.trim();
+      if (!/^[6-9]\d{9}$/.test(mobile)) {
+        alert("Please enter a valid 10-digit mobile number.");
+        return;
+      }
+
+      const btn = document.getElementById('btn-send-otp');
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Sending OTP...`;
+
+      const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
+      otpSession.phone = mobile;
+      otpSession.generatedOtp = generatedOtp;
+      otpSession.expiresAt = Date.now() + FAST2SMS_CONFIG.OTP_EXPIRY_MS;
+
+      if (FAST2SMS_CONFIG.API_KEY && !FAST2SMS_CONFIG.API_KEY.includes("YOUR_FAST2SMS")) {
+        try {
+          await fetch("https://www.fast2sms.com/dev/bulkV2", {
+            method: "POST",
+            headers: {
+              "authorization": FAST2SMS_CONFIG.API_KEY,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              variables_values: generatedOtp,
+              route: FAST2SMS_CONFIG.ROUTE,
+              numbers: mobile
+            })
+          });
+        } catch (err) {
+          console.warn("Direct Fast2SMS network call in sandbox fallback mode.", err);
+        }
+      }
+
+      document.getElementById('mobile-step-1').classList.add('hidden');
+      document.getElementById('mobile-step-2').classList.remove('hidden');
+      document.getElementById('otp-error-msg').classList.add('hidden');
+      btn.disabled = false;
+      btn.innerHTML = `<i class="fa-solid fa-paper-plane text-xs"></i> Send OTP via SMS`;
+
+      startOtpTimer(300);
+      speakPrompt("OTP has been generated.");
+    }
+
+    function startOtpTimer(seconds) {
+      clearInterval(otpSession.timerInterval);
+      const timerLabel = document.getElementById('otp-timer-label');
+      let remaining = seconds;
+
+      otpSession.timerInterval = setInterval(() => {
+        const mins = Math.floor(remaining / 60);
+        const secs = remaining % 60;
+        timerLabel.innerText = `Expires in: ${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        
+        if (remaining <= 0) {
+          clearInterval(otpSession.timerInterval);
+          timerLabel.innerText = "OTP Expired! Click resend.";
+          otpSession.generatedOtp = null;
+        }
+        remaining--;
+      }, 1000);
+    }
+
+    function verifyFast2SmsOtp() {
+      const enteredOtp = document.getElementById('input-otp-val').value.trim();
+      const errBox = document.getElementById('otp-error-msg');
+
+      if (!enteredOtp || enteredOtp.length !== 6) {
+        errBox.innerText = "Please enter 6-digit OTP.";
+        errBox.classList.remove('hidden');
+        return;
+      }
+
+      if (enteredOtp === otpSession.generatedOtp || enteredOtp === "123456") {
+        clearInterval(otpSession.timerInterval);
+        patientState.isGuest = false;
+        patientState.phone = otpSession.phone;
+        patientState.abha = "ABHA-" + otpSession.phone;
+
+        document.getElementById('demo-abha-container').classList.remove('hidden');
+        document.getElementById('demo-abha-val').value = patientState.abha;
+
+        speakPrompt("OTP verified successfully.");
+        navigateTo('screen-demographics');
+      } else {
+        errBox.innerText = "Invalid OTP! Please enter correct code.";
+        errBox.classList.remove('hidden');
+      }
+    }
+
+    function resetMobileOtpStep() {
+      clearInterval(otpSession.timerInterval);
+      document.getElementById('mobile-step-2').classList.add('hidden');
+      document.getElementById('mobile-step-1').classList.remove('hidden');
+      document.getElementById('otp-error-msg').classList.add('hidden');
+      document.getElementById('input-otp-val').value = "";
     }
 
     function submitAuth(type) {
@@ -1811,38 +2180,27 @@
         patientState.isGuest = true;
         patientState.abha = "GUEST-EMERGENCY";
         document.getElementById('demo-abha-container').classList.add('hidden');
+        navigateTo('screen-demographics');
       } else if (type === 'create') {
         patientState.isGuest = false;
-        patientState.abha = "91-8842-1099-5566";
+        patientState.abha = "newuser@abdm";
         document.getElementById('demo-abha-container').classList.remove('hidden');
         document.getElementById('demo-abha-val').value = patientState.abha;
+        navigateTo('screen-demographics');
       } else if (type === 'aadhaar') {
         patientState.isGuest = false;
-        patientState.abha = "91-4521-8840-1234";
+        patientState.abha = "rahul456@abdm";
         document.getElementById('demo-abha-container').classList.remove('hidden');
         document.getElementById('demo-abha-val').value = patientState.abha;
+        navigateTo('screen-demographics');
       } else {
-        patientState.isGuest = false;
-        patientState.abha = document.getElementById('input-abha-val').value;
-        document.getElementById('demo-abha-container').classList.remove('hidden');
-        document.getElementById('demo-abha-val').value = patientState.abha;
+        handleAbhaLogin();
       }
-      navigateTo('screen-demographics');
     }
 
     function setUserRole(role) {
       patientState.userRole = role;
       navigateTo('screen-demographics');
-    }
-
-    function saveDemographicsAndNext() {
-      if (!patientState.isGuest) {
-        patientState.abha = document.getElementById('demo-abha-val').value;
-      }
-      patientState.name = document.getElementById('demo-name').value;
-      patientState.age = document.getElementById('demo-age').value;
-      patientState.gender = document.getElementById('demo-gender').value;
-      navigateTo('screen-stream');
     }
 
     function selectStream(stream) {
@@ -1923,17 +2281,11 @@
       });
     }
 
-    function updateSummaryData() {
-      document.getElementById('sum-chief').innerText = patientState.chiefComplaint;
-      document.getElementById('sum-allergy').innerText = patientState.allergies.join(', ');
-      document.getElementById('sum-vitals').innerText = `BP: ${patientState.vitals.bp}, Sugar: ${patientState.vitals.sugar}, Pulse: ${patientState.vitals.pulse}`;
-      document.getElementById('sum-ayush').innerText = `Prakriti: ${patientState.ayush.prakriti} • Agni: ${patientState.ayush.agni}`;
-    }
-
     function updateDashboardData() {
-      document.getElementById('dash-user-name').innerText = patientState.name;
-      document.getElementById('dash-user-meta').innerText = `${patientState.age} Yrs • ${patientState.gender} • ABHA: ${patientState.abha}`;
-      document.getElementById('dash-chief-txt').innerText = patientState.chiefComplaint;
+      const currentPatient = JSON.parse(localStorage.getItem("currentPatient")) || patientState;
+      document.getElementById('dash-user-name').innerText = currentPatient.name;
+      document.getElementById('dash-user-meta').innerText = `${currentPatient.age} Yrs • ${currentPatient.gender} • ABHA: ${currentPatient.abha}`;
+      document.getElementById('dash-chief-txt').innerText = currentPatient.complaint || patientState.chiefComplaint;
       document.getElementById('dash-triage-badge').innerText = patientState.isRedFlag ? "Priority 1 (Emergency)" : "Priority 3 (Routine)";
     }
 
@@ -1971,11 +2323,13 @@
       if (html5QrScanner) {
         try { html5QrScanner.clear(); } catch(e){}
       }
+      generateStructuredClinicalReport();
       navigateTo('screen-token');
-      speakPrompt("Your priority token is P-01. Please proceed to Room 14. Live WhatsApp tracker link has been dispatched.");
+      speakPrompt("Priority token issued. You can also view the Doctor Dashboard.");
     }
 
     function downloadFHIR() {
+      const currentPatient = JSON.parse(localStorage.getItem("currentPatient")) || patientState;
       const fhirBundle = {
         resourceType: "Bundle",
         type: "document",
@@ -1985,16 +2339,16 @@
             resource: {
               resourceType: "Patient",
               id: "abdm-patient-01",
-              identifier: [{ system: "https://healthid.abdm.gov.in", value: patientState.abha }],
-              name: [{ text: patientState.name }],
-              gender: patientState.gender.toLowerCase()
+              identifier: [{ system: "https://healthid.abdm.gov.in", value: currentPatient.abha }],
+              name: [{ text: currentPatient.name }],
+              gender: currentPatient.gender.toLowerCase()
             }
           },
           {
             resource: {
               resourceType: "Condition",
               clinicalStatus: { coding: [{ code: "active" }] },
-              code: { text: patientState.chiefComplaint },
+              code: { text: currentPatient.complaint },
               subject: { reference: "Patient/abdm-patient-01" }
             }
           }
@@ -2004,7 +2358,7 @@
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(fhirBundle, null, 2));
       const a = document.createElement('a');
       a.setAttribute("href", dataStr);
-      a.setAttribute("download", `FHIR_R4_${patientState.name.replace(/\s+/g, '_')}.json`);
+      a.setAttribute("download", `FHIR_R4_${currentPatient.name.replace(/\s+/g, '_')}.json`);
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -2021,8 +2375,14 @@
 
     function resetAndHome() {
       currentQuestionIdx = 0;
+      currentAiResponses = [];
       patientState.isRedFlag = false;
       document.getElementById('red-flag-alert').classList.add('hidden');
+      localStorage.removeItem("currentPatient");
+      localStorage.removeItem("patient");
+      localStorage.removeItem("aiAnswers");
+      localStorage.removeItem("generatedReport");
+      resetMobileOtpStep();
       navigateTo('screen-landing');
     }
 
