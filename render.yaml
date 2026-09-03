@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: medikiosk-backend
+    runtime: node
+    region: oregon
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ALLOWED_ORIGINS
+        value: https://medikiosk.emtypyie.in,http://localhost:3000
+      - key: OCR_SERVICE_URL
+        value: http://localhost:3001
