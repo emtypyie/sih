@@ -1,6 +1,6 @@
 {
   "rewrites": [
     { "source": "/doctor", "destination": "/doctor.html" },
-    { "source": "/doctor/:match*", "destination": "/doctor.html" }
+    { "source": "/doctor/(.*)", "destination": "/doctor.html" }
   ]
 }
