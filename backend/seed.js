@@ -1,7 +1,10 @@
+import dns from "dns";
 import mongoose from "mongoose";
 import { env } from "./src/config/env.js";
 import { Patient } from "./src/models/Patient.js";
 import { logger } from "./src/utils/logger.js";
+
+dns.setServers(["8.8.8.8", "8.8.4.4"]);
 
 const SEED_PATIENTS = [
   {
