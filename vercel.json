@@ -1,17 +1,8 @@
 {
   "version": 2,
   "outputDirectory": "frontend",
-  "routes": [
-    { "src": "/doctor", "dest": "/doctor.html" },
-    { "src": "/doctor/(.*)", "dest": "/doctor.html" },
-    { "src": "/(.*)", "dest": "/index.html" }
-  ],
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        { "key": "Access-Control-Allow-Origin", "value": "https://cdn3.emtypyie.in" }
-      ]
-    }
+  "rewrites": [
+    { "source": "/doctor", "destination": "/doctor.html" },
+    { "source": "/doctor/:match*", "destination": "/doctor.html" }
   ]
 }
