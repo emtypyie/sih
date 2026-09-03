@@ -6,6 +6,8 @@ Node.js backend for the MediKiosk hospital patient intake system.
 
 **Problem:** There is no purpose-built, patient-facing software platform that enables patients to independently and comprehensively record their medical history — through both natural spoken conversation and guided touchscreen interaction — and simultaneously digitize their existing physical medical documents, generating a structured, physician-ready clinical history summary that integrates with the hospital information system and the ABDM ecosystem before the patient enters the consultation room.
 
+**Solution:** Patient case and treatment history tracking system — captures the complete patient journey from first contact to consultation, building a structured digital treatment history that accumulates across visits.
+
 ## Quick Start
 
 ```bash

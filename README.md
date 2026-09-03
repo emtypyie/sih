@@ -14,14 +14,17 @@ An AI-powered hospital kiosk system that digitizes patient intake — from regis
 
 There is no purpose-built, patient-facing software platform that enables patients to independently and comprehensively record their medical history — through both natural spoken conversation and guided touchscreen interaction — and simultaneously digitize their existing physical medical documents, generating a structured, physician-ready clinical history summary that integrates with the hospital information system and the ABDM ecosystem before the patient enters the consultation room.
 
-## Our Solution
+## Our Solution — Patient Case & Treatment History Tracking
 
-MediKiosk solves this end-to-end:
+MediKiosk is a patient case and treatment history tracking solution. It captures the complete patient journey from first contact to consultation — building a structured, digital treatment history that follows the patient through the ABDM ecosystem.
 
 ```
 Patient arrives → ABHA/OTP auth → Demographics → AI Interview → Vitals →
-Document scan (OCR + LLM) → Clinical summary → Priority token → Doctor review
+Document scan (OCR + LLM) → Treatment history built → Clinical summary →
+Priority token → Doctor reviews full case history → Verification → Follow-up tracking
 ```
+
+**Key differentiator:** The system doesn't just collect data — it builds a longitudinal patient case record that accumulates across visits, linking past treatments, diagnoses, medications, and lab results into a single physician-ready profile.
 
 ## Live Demo
 
@@ -38,15 +41,16 @@ Document scan (OCR + LLM) → Clinical summary → Priority token → Doctor rev
 - **ABDM Integration** — ABHA ID login, mobile OTP, guest mode
 - **Adaptive AI Interview** — dynamic questions based on chief complaint (chest pain, fever, diabetes)
 - **Red-flag triage** — auto-classifies Priority 1 (emergency) vs Priority 3 (routine)
-- **Document OCR** — scan prescriptions, discharge cards, lab reports
+- **Document OCR** — scan prescriptions, discharge cards, lab reports — builds treatment history
+- **Treatment history accumulation** — past diagnoses, medications, surgeries linked to patient profile
 - **14-point clinical summary** — auto-generated intake for the doctor
 - **FHIR R4 export** — standardized healthcare data format
 - **Senior mode** — large font, bigger touch targets
 
 ### Doctor Panel (`doctor.html`)
 - **Real-time queue** — live token updates via Socket.io
-- **Patient detail view** — demographics, vitals, interview answers, triage
-- **Document verification** — view OCR results, verify or reject extracted data
+- **Patient case view** — full treatment history, past visits, linked documents
+- **Document verification** — verify or reject OCR-extracted treatment data
 - **Clinical report** — 14-point intake summary, FHIR download
 
 ### Backend
@@ -136,20 +140,25 @@ open index.html
 ## How It Works
 
 1. **Patient** walks up to kiosk, authenticates via ABHA or OTP
-2. **System** collects demographics, chief complaint, selects medical stream
-3. **AI Interview** asks adaptive questions based on complaint, flags red flags
-4. **Vitals** recorded (BP, sugar, pulse)
-5. **AYUSH assessment** if Ayurveda stream selected (Prakriti, Agni, Koshtha, Vikriti)
-6. **Document scan** — prescriptions/lab reports processed via OCR + LLaMA
-7. **Clinical summary** generated — 14-point intake report
-8. **Priority token** issued — Emergency (E), Urgent (U), or Routine (P)
-9. **Doctor** picks up from queue panel, reviews all data, verifies documents
+2. **System** pulls existing treatment history from ABDM (if returning patient)
+3. **Demographics** confirmed, chief complaint recorded
+4. **AI Interview** asks adaptive questions, flags red flags
+5. **Vitals** recorded (BP, sugar, pulse)
+6. **AYUSH assessment** if Ayurveda stream selected (Prakriti, Agni, Koshtha, Vikriti)
+7. **Document scan** — prescriptions, discharge cards, lab reports processed via OCR + LLaMA
+8. **Treatment history updated** — new diagnoses, medications, surgeries linked to patient record
+9. **Clinical summary** generated — 14-point intake with full case history
+10. **Priority token** issued — Emergency (E), Urgent (U), or Routine (P)
+11. **Doctor** picks up from queue panel — sees complete treatment history, verifies documents
+12. **Follow-up** — next visit builds on existing case record
 
 ## Future Scope
 
-- Real ABDM API integration
+- Real ABDM API integration for treatment history retrieval
 - Multi-language OCR (Hindi, Marathi prescriptions)
+- Treatment history timeline visualization
 - Prescription generation in doctor panel
+- Cross-visit case comparison
 - Admin analytics dashboard
 - Docker deployment
 - Voice AI for hands-free kiosk interaction
