@@ -1,5 +1,3 @@
 {
-  "buildCommand": "cd frontend && echo 'static site'",
-  "outputDirectory": "frontend",
   "cleanUrls": true
 }
