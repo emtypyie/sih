@@ -1,5 +1,13 @@
 # MediKiosk
 
+**Smart India Hackathon 2026 — Problem ID: SIH26047**
+
+Internal Hackathon | Indian Institute of Technology Madras
+
+**Team: EmtyBrains**
+
+---
+
 AI-powered hospital kiosk patient intake system.
 
 ## What It Does
