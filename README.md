@@ -8,167 +8,107 @@
 
 ---
 
-An AI-powered hospital kiosk system that digitizes patient intake — from registration to doctor handoff — reducing wait times and eliminating paper forms.
+## What is this?
 
-## Problem Statement (SIH26047)
+MediKiosk is a patient case and treatment history tracking system. It helps patients record their full medical history — through talking or touching a screen — and digitizes their old prescriptions and lab reports. Everything gets organized into a clean summary that the doctor can see before the patient even walks into the room.
 
-There is no purpose-built, patient-facing software platform that enables patients to independently and comprehensively record their medical history — through both natural spoken conversation and guided touchscreen interaction — and simultaneously digitize their existing physical medical documents, generating a structured, physician-ready clinical history summary that integrates with the hospital information system and the ABDM ecosystem before the patient enters the consultation room.
+## The Problem (SIH26047)
 
-## Our Solution — Patient Case & Treatment History Tracking
+Right now, there's no good way for patients to sit down and properly record their own medical history. They can't easily talk through their symptoms, upload old prescriptions, or build a treatment record that follows them across visits. Doctors start from scratch every time. Paper forms get lost. Information slips through the cracks.
 
-MediKiosk is a patient case and treatment history tracking solution. It captures the complete patient journey from first contact to consultation — building a structured, digital treatment history that follows the patient through the ABDM ecosystem.
+## What we built
+
+A kiosk + doctor panel that handles the full patient intake flow:
 
 ```
-Patient arrives → ABHA/OTP auth → Demographics → AI Interview → Vitals →
-Document scan (OCR + LLM) → Treatment history built → Clinical summary →
-Priority token → Doctor reviews full case history → Verification → Follow-up tracking
+Patient walks in → ABHA/OTP login → Basic info → AI asks questions →
+Vitals check → Scan old documents → Build treatment history →
+Doctor gets a full summary before seeing the patient
 ```
 
-**Key differentiator:** The system doesn't just collect data — it builds a longitudinal patient case record that accumulates across visits, linking past treatments, diagnoses, medications, and lab results into a single physician-ready profile.
+The key thing — it's not just collecting data for one visit. It builds a **treatment history** that grows over time. Every visit adds to the patient's case record. Doctors can see past diagnoses, medications, surgeries, and lab results all in one place.
 
-## Live Demo
+## Live Links
 
-| Service | URL |
-|---------|-----|
-| Kiosk Frontend | [medikiosk.emtypyie.in](https://medikiosk.emtypyie.in) |
-| Doctor Panel | [medikiosk.emtypyie.in/doctor](https://medikiosk.emtypyie.in/doctor) |
+| What | Where |
+|------|-------|
+| Kiosk (patient screen) | [medikiosk.emtypyie.in](https://medikiosk.emtypyie.in) |
+| Doctor panel | [medikiosk.emtypyie.in/doctor](https://medikiosk.emtypyie.in/doctor) |
 | Backend API | [cdn3.emtypyie.in](https://cdn3.emtypyie.in/api/health) |
 
-## Features
+## What it does
 
-### Patient Kiosk (`index.html`)
-- **Multi-language** — English, Hindi, Marathi, Gujarati, Tamil, Telugu, Bengali
-- **ABDM Integration** — ABHA ID login, mobile OTP, guest mode
-- **Adaptive AI Interview** — dynamic questions based on chief complaint (chest pain, fever, diabetes)
-- **Red-flag triage** — auto-classifies Priority 1 (emergency) vs Priority 3 (routine)
-- **Document OCR** — scan prescriptions, discharge cards, lab reports — builds treatment history
-- **Treatment history accumulation** — past diagnoses, medications, surgeries linked to patient profile
-- **14-point clinical summary** — auto-generated intake for the doctor
-- **FHIR R4 export** — standardized healthcare data format
-- **Senior mode** — large font, bigger touch targets
+### For the Patient (Kiosk)
+- Pick your language — English, Hindi, Marathi, Gujarati, Tamil, Telugu, Bengali
+- Login with ABHA ID, phone OTP, or walk in as guest
+- AI asks you questions based on what's wrong (chest pain, fever, diabetes, etc.)
+- Records vitals — BP, sugar, pulse
+- Scans your old prescriptions and lab reports (OCR + AI reads them)
+- Builds your treatment history — diagnoses, medications, surgeries, lab values
+- Prints a priority token — Emergency, Urgent, or Routine
 
-### Doctor Panel (`doctor.html`)
-- **Real-time queue** — live token updates via Socket.io
-- **Patient case view** — full treatment history, past visits, linked documents
-- **Document verification** — verify or reject OCR-extracted treatment data
-- **Clinical report** — 14-point intake summary, FHIR download
-
-### Backend
-- **Node.js + Express** — REST API with JWT auth
-- **MongoDB** — patient records, tokens, reports, documents
-- **Socket.io** — real-time queue updates
-- **OCR proxy** — forwards to Python PaddleOCR + LLaMA service
-- **Zod validation** — request validation on all endpoints
+### For the Doctor (Panel)
+- See the queue in real-time — who's waiting, who's called
+- Open any patient's full case — demographics, vitals, interview answers, past treatments
+- Verify or reject what the AI extracted from documents
+- View the 14-point clinical summary
+- Download FHIR format data (healthcare standard)
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Frontend | HTML5, Tailwind CSS, Socket.io Client |
-| Backend | Node.js, Express.js, MongoDB (Mongoose) |
-| Auth | JWT, Zod validation |
-| OCR | Python, PaddleOCR, LLaMA 3.2:3b |
+| Part | What we used |
+|------|-------------|
+| Frontend | HTML, Tailwind CSS, Socket.io |
+| Backend | Node.js, Express.js, MongoDB |
 | Real-time | Socket.io |
+| Auth | JWT |
+| OCR | Python, PaddleOCR, LLaMA 3.2:3b |
 | Hosting | Vercel (frontend), Render (backend), MongoDB Atlas |
 
-## Project Structure
+## How it works (step by step)
 
-```
-├── index.html                  # Kiosk patient intake
-├── doctor.html                 # Doctor clinical panel
-├── frontend/doctor/            # Doctor panel (clean URL)
-├── backend/
-│   ├── server.js               # Express + Socket.io entry
-│   ├── seed.js                 # Demo patient seeder
-│   └── src/
-│       ├── config/             # MongoDB, env vars
-│       ├── models/             # Patient, Token, Report, Session, Document
-│       ├── routes/             # auth, patients, interview, tokens, reports, doctor
-│       ├── services/           # OTP, ABHA, interview engine, reports, FHIR
-│       ├── socket/             # WebSocket handlers
-│       ├── middleware/         # JWT auth, error handler, file upload
-│       └── utils/              # Helpers, logger, error classes
-├── vercel.json                 # Vercel routing
-├── render.yaml                 # Render deployment
-├── ocr.md                      # OCR service handoff doc
-└── plan.md                     # Full architecture plan
-```
+1. Patient shows up at the kiosk
+2. Logs in with ABHA or phone number
+3. System checks if they've been here before — pulls old treatment history
+4. Patient confirms their info and describes what's wrong
+5. AI asks smart follow-up questions based on the complaint
+6. If anything looks serious, it flags as emergency
+7. Vitals get recorded
+8. Patient scans old prescriptions, discharge cards, lab reports
+9. AI reads the documents and adds to their treatment history
+10. System generates a clinical summary with everything organized
+11. Patient gets a priority token
+12. Doctor sees the full case file before calling them in
+13. Doctor verifies the AI-extracted data
+14. Patient's record is ready for next visit
 
-## Quick Start
+## Demo Accounts
 
-```bash
-# Backend
-cd backend
-npm install
-cp .env.example .env      # add your MONGODB_URI
-npm run seed              # populate demo patients
-npm start                 # http://localhost:3000
+### Patient ABHA IDs
 
-# Frontend — open directly or deploy to Vercel
-open index.html
-```
+| ABHA ID | Name | Complaint |
+|---------|------|-----------|
+| `rahul456@abdm` | Rahul Singh | Chest Pain |
+| `priya123@abdm` | Priya Sharma | Fever |
+| `amit789@abdm` | Amit Verma | Diabetes |
 
-## Demo Data
+### Doctor Login
 
-### ABHA IDs
+| Username | Password |
+|----------|----------|
+| `admin` | `admin123` |
+| `doctor` | `doctor123` |
 
-| ABHA ID | Patient | Age/Gender | Complaint |
-|---------|---------|------------|-----------|
-| `rahul456@abdm` | Rahul Singh | 25M | Chest Pain |
-| `priya123@abdm` | Priya Sharma | 32F | Fever |
-| `amit789@abdm` | Amit Verma | 48M | Diabetes |
+## What's next
 
-### Doctor Panel
-
-| Username | Password | Role |
-|----------|----------|------|
-| `admin` | `admin123` | Admin |
-| `doctor` | `doctor123` | Doctor |
-
-## API Endpoints
-
-| Group | Endpoints |
-|-------|-----------|
-| Auth | `POST /api/auth/otp/send`, `/verify`, `/abha`, `/guest`, `GET /me` |
-| Patients | `GET/PUT /api/patients/:id/*` (demographics, vitals, allergies, ROS, AYUSH, lifestyle) |
-| Interview | `GET /questions`, `POST /answers`, `GET /progress` |
-| Tokens | `POST /issue`, `GET /:id`, `GET /queue/:counter`, `PUT /call`, `/complete` |
-| Reports | `POST /generate/:id`, `GET /:id`, `GET /:id/fhir` |
-| Doctor | `POST /login`, `GET /queue`, `PUT /token/:id/call`, `GET /patient/:id`, `PUT /document/:id/verify` |
-| OCR | `POST /api/ocr/upload` (proxy to Python service) |
-
-## How It Works
-
-1. **Patient** walks up to kiosk, authenticates via ABHA or OTP
-2. **System** pulls existing treatment history from ABDM (if returning patient)
-3. **Demographics** confirmed, chief complaint recorded
-4. **AI Interview** asks adaptive questions, flags red flags
-5. **Vitals** recorded (BP, sugar, pulse)
-6. **AYUSH assessment** if Ayurveda stream selected (Prakriti, Agni, Koshtha, Vikriti)
-7. **Document scan** — prescriptions, discharge cards, lab reports processed via OCR + LLaMA
-8. **Treatment history updated** — new diagnoses, medications, surgeries linked to patient record
-9. **Clinical summary** generated — 14-point intake with full case history
-10. **Priority token** issued — Emergency (E), Urgent (U), or Routine (P)
-11. **Doctor** picks up from queue panel — sees complete treatment history, verifies documents
-12. **Follow-up** — next visit builds on existing case record
-
-## Future Scope
-
-- Real ABDM API integration for treatment history retrieval
-- Multi-language OCR (Hindi, Marathi prescriptions)
-- Treatment history timeline visualization
-- Prescription generation in doctor panel
-- Cross-visit case comparison
-- Admin analytics dashboard
-- Docker deployment
-- Voice AI for hands-free kiosk interaction
-
-## Team
-
-| Name | Role |
-|------|------|
-| EmtyBrains | Backend, Frontend, Architecture |
+- Connect to real ABDM APIs for pulling treatment history
+- Read Hindi and Marathi prescriptions (OCR)
+- Visual timeline of patient's treatment history
+- Generate prescriptions from doctor panel
+- Compare cases across visits
+- Voice AI so patients can just talk instead of tapping
+- Analytics dashboard for hospital admins
 
 ---
 
-Built for **Smart India Hackathon 2026** | IIT Madras Internal Round
+Built for **Smart India Hackathon 2026** | IIT Madras Internal Round | Team EmtyBrains

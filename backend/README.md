@@ -1,201 +1,156 @@
 # MediKiosk Backend
 
-Node.js backend for the MediKiosk hospital patient intake system.
+The server that powers MediKiosk — handles patient data, authentication, queue management, document processing, and everything the frontend needs.
 
 **Problem ID:** SIH26047 | **Team:** EmtyBrains | **Hackathon:** SIH 2026, IIT Madras
 
-**Problem:** There is no purpose-built, patient-facing software platform that enables patients to independently and comprehensively record their medical history — through both natural spoken conversation and guided touchscreen interaction — and simultaneously digitize their existing physical medical documents, generating a structured, physician-ready clinical history summary that integrates with the hospital information system and the ABDM ecosystem before the patient enters the consultation room.
+## What is this?
 
-**Solution:** Patient case and treatment history tracking system — captures the complete patient journey from first contact to consultation, building a structured digital treatment history that accumulates across visits.
-
-## Quick Start
-
-```bash
-npm install
-cp .env.example .env    # add MONGODB_URI
-npm run seed             # seed demo patients
-npm start                # http://localhost:3000
-```
+A Node.js backend that manages the full patient intake flow — from login to treatment history to doctor handoff. It stores patient records, processes documents, manages the queue, and generates clinical summaries.
 
 ## Tech
 
-| Layer | Tech |
-|-------|------|
-| Runtime | Node.js (ES Modules) |
-| Framework | Express.js |
-| Database | MongoDB (Mongoose) |
+| Part | What |
+|------|------|
+| Server | Node.js + Express |
+| Database | MongoDB |
 | Real-time | Socket.io |
-| Auth | JWT + Zod |
+| Auth | JWT |
 | Upload | Multer |
-| SMS | Fast2SMS API |
-| Logging | Pino |
+| SMS | Fast2SMS |
 
-## Project Structure
+## What it does
 
-```
-backend/
-├── server.js               # Express + Socket.io entry
-├── seed.js                 # Demo patient seeder
-├── src/
-│   ├── config/
-│   │   ├── db.js           # MongoDB connection
-│   │   └── env.js          # Zod env validation
-│   ├── models/
-│   │   ├── Patient.js      # demographics, vitals, allergies, ROS, AYUSH, OCR, interview
-│   │   ├── Token.js        # queue tokens (E/U/P priority)
-│   │   ├── Report.js       # clinical summaries + FHIR
-│   │   ├── Session.js      # OTP sessions
-│   │   └── Document.js     # OCR docs with verification workflow
-│   ├── routes/
-│   │   ├── auth.js         # OTP, ABHA, guest, JWT
-│   │   ├── patients.js     # CRUD for patient data
-│   │   ├── interview.js    # adaptive questions + red flags
-│   │   ├── tokens.js       # queue management
-│   │   ├── reports.js      # clinical summary + FHIR
-│   │   └── doctor.js       # doctor panel (queue, verify docs)
-│   ├── services/
-│   │   ├── otpService.js   # OTP generation + Fast2SMS
-│   │   ├── abhaService.js  # ABHA lookup + demo data
-│   │   ├── interviewService.js  # question engine
-│   │   ├── reportService.js     # 14-point summary
-│   │   └── fhirService.js       # FHIR R4 bundle
-│   ├── socket/
-│   │   └── index.js        # Socket.io events
-│   ├── middleware/
-│   │   ├── auth.js         # JWT verification
-│   │   ├── errorHandler.js # error handling
-│   │   └── upload.js       # multer config
-│   └── utils/
-│       ├── errors.js       # custom error classes
-│       ├── helpers.js      # OTP/token generation
-│       └── logger.js       # pino config
-└── uploads/                # uploaded documents
-```
+### Patient Auth
+- ABHA ID login (lookup patient by health ID)
+- Phone OTP login (send code, verify)
+- Guest mode (emergency walk-ins)
+- JWT tokens for session management
 
-## Environment Variables
+### Patient Data
+- Store demographics (name, age, gender)
+- Record vitals (BP, sugar, pulse)
+- Track allergies, diet, sleep
+- Review of systems (symptoms checklist)
+- Family history
+- AYUSH assessment (Prakriti, Agni, Koshtha, Vikriti)
+- Lifestyle info
 
-```env
-PORT=3000
-MONGODB_URI=your_mongodb_atlas_uri
-JWT_SECRET=your_secret_key
-JWT_EXPIRES_IN=24h
-FAST2SMS_API_KEY=your_api_key
-FAST2SMS_ROUTE=otp
-OTP_EXPIRY_MINUTES=5
-ALLOWED_ORIGINS=https://medikiosk.emtypyie.in
-NODE_ENV=development
-OCR_SERVICE_URL=http://localhost:3001
-```
+### AI Interview
+- Adaptive questions based on complaint (chest pain, fever, diabetes)
+- Red flag detection (emergency symptoms)
+- Auto-triage priority assignment
+
+### Treatment History
+- Store diagnoses, medications, surgeries from OCR
+- Build treatment history across visits
+- Link past records to current patient
+
+### Queue Management
+- Issue priority tokens (Emergency / Urgent / Routine)
+- Real-time queue updates via Socket.io
+- Call patients, mark visits complete
+
+### Clinical Reports
+- Generate 14-point intake summary
+- Export FHIR R4 bundles (healthcare standard)
+- Doctor can view full patient case
+
+### Document Verification
+- Store OCR-processed documents
+- Track verification status (processing → unverified → verified/rejected)
+- Doctor verifies extracted data before it's trusted
+
+### Doctor Panel
+- Staff login with hardcoded credentials
+- View real-time patient queue
+- See full patient case history
+- Verify or reject OCR documents
+- View clinical reports
 
 ## API Endpoints
 
 ### Auth
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/auth/otp/send` | Send OTP to phone |
-| POST | `/api/auth/otp/verify` | Verify OTP, get JWT |
-| POST | `/api/auth/abha` | ABHA ID lookup |
-| POST | `/api/auth/guest` | Guest session |
-| GET | `/api/auth/me` | Get current patient |
+- `POST /api/auth/otp/send` — send OTP
+- `POST /api/auth/otp/verify` — verify OTP, get token
+- `POST /api/auth/abha` — ABHA lookup
+- `POST /api/auth/guest` — guest login
+- `GET /api/auth/me` — current patient
 
-### Patients (JWT required)
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/patients/:id` | Get patient |
-| PUT | `/api/patients/:id/demographics` | Update name, age, gender |
-| PUT | `/api/patients/:id/stream` | Set allopathy/ayush |
-| PUT | `/api/patients/:id/vitals` | Update BP, sugar, pulse |
-| PUT | `/api/patients/:id/allergies` | Update allergies |
-| PUT | `/api/patients/:id/ros` | Update ROS + family |
-| PUT | `/api/patients/:id/ayush` | Update AYUSH data |
-| PUT | `/api/patients/:id/lifestyle` | Update diet, sleep |
+### Patients
+- `GET /api/patients/:id` — get patient
+- `PUT /api/patients/:id/demographics` — update name/age/gender
+- `PUT /api/patients/:id/stream` — set allopathy/ayush
+- `PUT /api/patients/:id/vitals` — update vitals
+- `PUT /api/patients/:id/allergies` — update allergies
+- `PUT /api/patients/:id/ros` — update symptoms + family
+- `PUT /api/patients/:id/ayush` — update AYUSH data
+- `PUT /api/patients/:id/lifestyle` — update diet/sleep
 
-### Interview (JWT required)
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/interview/:id/questions` | Get questions for complaint |
-| POST | `/api/interview/:id/answers` | Submit answers |
-| GET | `/api/interview/:id/progress` | Get progress |
+### Interview
+- `GET /api/interview/:id/questions` — get questions for complaint
+- `POST /api/interview/:id/answers` — submit answers
+- `GET /api/interview/:id/progress` — get progress
 
-### Tokens (JWT required)
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/tokens/issue` | Issue queue token |
-| GET | `/api/tokens/:id` | Get token |
-| GET | `/api/tokens/queue/:counter` | Get queue |
-| PUT | `/api/tokens/:id/call` | Call patient |
-| PUT | `/api/tokens/:id/complete` | Mark done |
+### Tokens
+- `POST /api/tokens/issue` — issue token
+- `GET /api/tokens/:id` — get token
+- `GET /api/tokens/queue/:counter` — get queue
+- `PUT /api/tokens/:id/call` — call patient
+- `PUT /api/tokens/:id/complete` — mark done
 
-### Reports (JWT required)
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/reports/generate/:id` | Generate 14-point summary |
-| GET | `/api/reports/:id` | Get report |
-| GET | `/api/reports/:id/fhir` | Download FHIR bundle |
+### Reports
+- `POST /api/reports/generate/:id` — generate summary
+- `GET /api/reports/:id` — get report
+- `GET /api/reports/:id/fhir` — download FHIR
 
-### Doctor Panel (Doctor JWT required)
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/doctor/auth/login` | Staff login |
-| GET | `/api/doctor/queue` | Get all active tokens |
-| PUT | `/api/doctor/token/:id/call` | Call patient |
-| PUT | `/api/doctor/token/:id/complete` | Complete visit |
-| GET | `/api/doctor/patient/:id` | Patient detail |
-| GET | `/api/doctor/patient/:id/documents` | Patient docs |
-| PUT | `/api/doctor/document/:id/verify` | Verify OCR doc |
-| PUT | `/api/doctor/document/:id/reject` | Reject OCR doc |
+### Doctor Panel
+- `POST /api/doctor/auth/login` — staff login
+- `GET /api/doctor/queue` — all active tokens
+- `PUT /api/doctor/token/:id/call` — call patient
+- `PUT /api/doctor/token/:id/complete` — complete visit
+- `GET /api/doctor/patient/:id` — patient detail
+- `GET /api/doctor/patient/:id/documents` — patient docs
+- `PUT /api/doctor/document/:id/verify` — verify document
+- `PUT /api/doctor/document/:id/reject` — reject document
 
-### OCR
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/ocr/upload` | Proxy to Python OCR service |
-
-### Health
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/health` | Health check |
+### Other
+- `POST /api/ocr/upload` — proxy to Python OCR service
+- `GET /api/health` — health check
 
 ## WebSocket Events
 
-| Event | Direction | Payload |
-|-------|-----------|---------|
-| `token:issued` | Server → Client | `{ token, patientId, counter, priority }` |
-| `token:called` | Server → Client | `{ token, counter }` |
-| `patient:update` | Server → Client | `{ patientId, field, value }` |
+- `token:issued` — when a token is generated
+- `token:called` — when doctor calls a patient
+- `patient:update` — when patient data changes
 
-## Demo ABHA IDs
+## Demo Data
+
+### ABHA IDs
 
 | ABHA ID | Patient | Complaint |
 |---------|---------|-----------|
-| `rahul456@abdm` | Rahul Singh, 25M | Chest Pain |
-| `priya123@abdm` | Priya Sharma, 32F | Fever |
-| `amit789@abdm` | Amit Verma, 48M | Diabetes |
+| `rahul456@abdm` | Rahul Singh | Chest Pain |
+| `priya123@abdm` | Priya Sharma | Fever |
+| `amit789@abdm` | Amit Verma | Diabetes |
 
-## Doctor Panel Credentials
+### Doctor Login
 
-| Username | Password | Role |
-|----------|----------|------|
-| `admin` | `admin123` | Admin |
-| `doctor` | `doctor123` | Doctor |
-
-## Scripts
-
-```bash
-npm start        # production
-npm run dev      # development with --watch
-npm run seed     # seed demo patients
-```
+| Username | Password |
+|----------|----------|
+| `admin` | `admin123` |
+| `doctor` | `doctor123` |
 
 ## Deployment
 
-Set these in Render dashboard:
+This runs on Render. You need to set these environment variables:
 
-| Key | Value |
-|-----|-------|
-| `MONGODB_URI` | Your Atlas connection string |
-| `JWT_SECRET` | Auto-generated |
-| `NODE_ENV` | production |
-| `ALLOWED_ORIGINS` | https://medikiosk.emtypyie.in |
+| Variable | What to put |
+|----------|------------|
+| `MONGODB_URI` | Your MongoDB Atlas connection string |
+| `JWT_SECRET` | Any random secret key |
+| `NODE_ENV` | `production` |
+| `ALLOWED_ORIGINS` | `https://medikiosk.emtypyie.in` |
 
 ---
 
