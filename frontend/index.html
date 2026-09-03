@@ -1163,7 +1163,7 @@
     // =========================================================================
     const API_BASE = (window.location.hostname === "localhost"
       ? window.location.origin
-      : "https://cdn3.emtypyie.in") + "/api";
+      : "https://sih2026-otfr.onrender.com") + "/api";
     let authToken = localStorage.getItem("authToken") || null;
     let currentPatientId = localStorage.getItem("currentPatientId") || null;
 
@@ -1172,7 +1172,7 @@
       if (typeof io !== "undefined") {
         const wsUrl = window.location.hostname === "localhost"
           ? window.location.origin
-          : "https://cdn3.emtypyie.in";
+          : "https://sih2026-otfr.onrender.com";
         socket = io(wsUrl, { reconnection: false });
         socket.on("patient:update", (data) => console.log("[WS] Patient update:", data));
         socket.on("token:issued", (data) => console.log("[WS] Token issued:", data));

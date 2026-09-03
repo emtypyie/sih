@@ -284,7 +284,7 @@
     // =========================================================================
     const API_BASE = (window.location.hostname === "localhost"
       ? window.location.origin
-      : "https://cdn3.emtypyie.in") + "/api/doctor";
+      : "https://sih2026-otfr.onrender.com") + "/api/doctor";
     let authToken = localStorage.getItem("doctorToken") || null;
     let staffInfo = JSON.parse(localStorage.getItem("doctorStaff") || "null");
     let currentPatientId = null;
@@ -295,7 +295,7 @@
       if (typeof io !== "undefined") {
         const wsUrl = window.location.hostname === "localhost"
           ? window.location.origin
-          : "https://cdn3.emtypyie.in";
+          : "https://sih2026-otfr.onrender.com";
         socket = io(wsUrl, { reconnection: false });
         socket.on("token:issued", () => loadQueue());
         socket.on("token:called", () => loadQueue());
