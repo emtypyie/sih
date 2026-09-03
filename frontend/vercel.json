@@ -1,7 +1,7 @@
 {
-  "cleanUrls": true,
-  "rewrites": [
-    { "source": "/doctor", "destination": "/doctor.html" },
-    { "source": "/doctor/:match*", "destination": "/doctor.html" }
+  "version": 2,
+  "routes": [
+    { "src": "^/doctor$", "dest": "/doctor.html" },
+    { "src": "^/doctor/(.*)", "dest": "/doctor.html" }
   ]
 }
