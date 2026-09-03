@@ -19,6 +19,7 @@ import interviewRoutes from "./src/routes/interview.js";
 import tokenRoutes from "./src/routes/tokens.js";
 import reportRoutes from "./src/routes/reports.js";
 import doctorRoutes from "./src/routes/doctor.js";
+import documentRoutes from "./src/routes/documents.js";
 
 const app = express();
 const httpServer = createServer(app);
@@ -44,6 +45,7 @@ app.use("/api/interview", interviewRoutes);
 app.use("/api/tokens", tokenRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/doctor", doctorRoutes);
+app.use("/api", documentRoutes);
 
 // Proxy OCR requests to Python OCR service
 app.use("/api/ocr", async (req, res) => {

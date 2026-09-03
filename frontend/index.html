@@ -2346,24 +2346,31 @@ Recommendation: ${recommendation}`;
         const headers = {};
         if (authToken) headers["Authorization"] = `Bearer ${authToken}`;
 
-        const res = await fetch(`${API_BASE}/ocr/upload`, {
+        const res = await fetch(`${API_BASE}/upload`, {
           method: "POST",
           headers,
           body: formData,
         });
         const data = await res.json();
 
-        if (data.success && data.ocr) {
-          patientState.ocr = data.ocr;
-          document.getElementById('ocr-dx').innerText = data.ocr.dx || "No data";
-          document.getElementById('ocr-rx').innerText = data.ocr.rx || "No data";
-          document.getElementById('ocr-labs').innerText = data.ocr.labs || "No data";
-          document.getElementById('ocr-sx').innerText = data.ocr.sx || "No data";
+        if (data.success) {
+          if (data.ocr && data.ocrDeployed) {
+            patientState.ocr = data.ocr;
+            document.getElementById('ocr-dx').innerText = data.ocr.dx || "No data";
+            document.getElementById('ocr-rx').innerText = data.ocr.rx || "No data";
+            document.getElementById('ocr-labs').innerText = data.ocr.labs || "No data";
+            document.getElementById('ocr-sx').innerText = data.ocr.sx || "No data";
+          } else {
+            document.getElementById('ocr-dx').innerText = "OCR not deployed";
+            document.getElementById('ocr-rx').innerText = "OCR not deployed";
+            document.getElementById('ocr-labs').innerText = "OCR not deployed";
+            document.getElementById('ocr-sx').innerText = "OCR not deployed";
+          }
         } else {
           loadSampleOcr();
         }
       } catch (err) {
-        console.warn("OCR upload failed, using sample data:", err);
+        console.warn("Document upload failed:", err);
         loadSampleOcr();
       } finally {
         loading.classList.add('hidden');
