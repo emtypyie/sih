@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MediKiosk - Doctor Panel</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" defer></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            brand: { 50:'#eff6ff',100:'#dbeafe',500:'#3b82f6',600:'#2563eb',700:'#1d4ed8',800:'#1e40af',900:'#1e3a8a' },
+            ayush: { 50:'#f0fdf4',100:'#dcfce7',500:'#22c55e',600:'#16a34a',700:'#15803d',800:'#166534' }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="bg-slate-950 min-h-screen font-sans text-slate-800 antialiased">
+
+  <!-- LOGIN SCREEN -->
+  <section id="screen-login" class="screen-container min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-sm">
+      <div class="text-center mb-8">
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-brand-600 mb-4">
+          <i class="fa-solid fa-user-doctor text-white text-2xl"></i>
+        </div>
+        <h1 class="text-2xl font-black text-white">Doctor Panel</h1>
+        <p class="text-sm text-slate-400 mt-1">MediKiosk Clinical Dashboard</p>
+      </div>
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+        <div id="login-error" class="hidden mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700"></div>
+        <div class="space-y-4">
+          <div>
+            <label class="text-[10px] font-bold text-slate-600 uppercase">Username</label>
+            <input id="login-user" type="text" placeholder="admin"
+              class="w-full mt-1 p-3 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500" />
+          </div>
+          <div>
+            <label class="text-[10px] font-bold text-slate-600 uppercase">Password</label>
+            <input id="login-pass" type="password" placeholder="admin123"
+              class="w-full mt-1 p-3 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500" />
+          </div>
+          <button onclick="doLogin()" id="login-btn"
+            class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-md transition-all">
+            Sign In
+          </button>
+        </div>
+        <p class="text-[10px] text-slate-400 text-center mt-4">Default: admin / admin123</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- QUEUE SCREEN -->
+  <section id="screen-queue" class="screen-container hidden min-h-screen">
+    <div class="max-w-5xl mx-auto p-4">
+      <header class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-brand-600 flex items-center justify-center">
+            <i class="fa-solid fa-clipboard-list text-white"></i>
+          </div>
+          <div>
+            <h1 class="text-lg font-black text-white">Patient Queue</h1>
+            <p id="queue-count" class="text-xs text-slate-400">0 patients waiting</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <span id="staff-name" class="text-xs text-slate-400"></span>
+          <button onclick="doLogout()" class="px-3 py-1.5 text-xs font-bold text-red-400 hover:text-red-300 border border-slate-700 rounded-xl">
+            <i class="fa-solid fa-right-from-bracket mr-1"></i>Logout
+          </button>
+        </div>
+      </header>
+
+      <div id="queue-empty" class="hidden text-center py-20">
+        <i class="fa-solid fa-inbox text-4xl text-slate-700 mb-3"></i>
+        <p class="text-slate-500 font-bold">No patients in queue</p>
+        <p class="text-xs text-slate-600 mt-1">Tokens will appear here in real-time</p>
+      </div>
+
+      <div id="queue-list" class="space-y-3"></div>
+    </div>
+  </section>
+
+  <!-- PATIENT DETAIL SCREEN -->
+  <section id="screen-patient" class="screen-container hidden min-h-screen">
+    <div class="max-w-4xl mx-auto p-4">
+      <header class="flex items-center gap-3 mb-6">
+        <button onclick="navigateTo('screen-queue')" class="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-white">
+          <i class="fa-solid fa-arrow-left"></i>
+        </button>
+        <div>
+          <h1 id="patient-name" class="text-lg font-black text-white"></h1>
+          <p id="patient-meta" class="text-xs text-slate-400"></p>
+        </div>
+      </header>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Demographics -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-5">
+          <h3 class="text-xs font-black text-slate-900 mb-3"><i class="fa-solid fa-id-card text-brand-600 mr-1"></i> Demographics</h3>
+          <div class="space-y-2 text-sm">
+            <div class="flex justify-between"><span class="text-slate-500">ABHA</span><span id="p-abha" class="font-bold"></span></div>
+            <div class="flex justify-between"><span class="text-slate-500">Age</span><span id="p-age" class="font-bold"></span></div>
+            <div class="flex justify-between"><span class="text-slate-500">Gender</span><span id="p-gender" class="font-bold"></span></div>
+            <div class="flex justify-between"><span class="text-slate-500">Stream</span><span id="p-stream" class="font-bold capitalize"></span></div>
+            <div class="flex justify-between"><span class="text-slate-500">Status</span><span id="p-status" class="font-bold"></span></div>
+          </div>
+        </div>
+
+        <!-- Vitals -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-5">
+          <h3 class="text-xs font-black text-slate-900 mb-3"><i class="fa-solid fa-heart-pulse text-red-500 mr-1"></i> Vitals</h3>
+          <div class="space-y-2 text-sm">
+            <div class="flex justify-between"><span class="text-slate-500">BP</span><span id="p-bp" class="font-bold"></span></div>
+            <div class="flex justify-between"><span class="text-slate-500">Sugar</span><span id="p-sugar" class="font-bold"></span></div>
+            <div class="flex justify-between"><span class="text-slate-500">Pulse</span><span id="p-pulse" class="font-bold"></span></div>
+          </div>
+        </div>
+
+        <!-- Chief Complaint -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-5">
+          <h3 class="text-xs font-black text-slate-900 mb-3"><i class="fa-solid fa-comment-medical text-amber-500 mr-1"></i> Chief Complaint</h3>
+          <p id="p-complaint" class="text-sm font-bold text-slate-800"></p>
+        </div>
+
+        <!-- Triage -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-5">
+          <h3 class="text-xs font-black text-slate-900 mb-3"><i class="fa-solid fa-triangle-exclamation text-red-500 mr-1"></i> Triage Classification</h3>
+          <div id="p-triage" class="text-sm font-bold"></div>
+        </div>
+
+        <!-- Allergies -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-5">
+          <h3 class="text-xs font-black text-slate-900 mb-3"><i class="fa-solid fa-shield-virus text-orange-500 mr-1"></i> Allergies</h3>
+          <div id="p-allergies" class="text-sm"></div>
+        </div>
+
+        <!-- Lifestyle -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-5">
+          <h3 class="text-xs font-black text-slate-900 mb-3"><i class="fa-solid fa-utensils text-green-500 mr-1"></i> Lifestyle</h3>
+          <div class="space-y-2 text-sm">
+            <div class="flex justify-between"><span class="text-slate-500">Diet</span><span id="p-diet" class="font-bold"></span></div>
+            <div class="flex justify-between"><span class="text-slate-500">Sleep</span><span id="p-sleep" class="font-bold"></span></div>
+          </div>
+        </div>
+
+        <!-- Interview Answers -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 md:col-span-2">
+          <h3 class="text-xs font-black text-slate-900 mb-3"><i class="fa-solid fa-clipboard-question text-brand-600 mr-1"></i> Interview Answers</h3>
+          <div id="p-interview" class="space-y-2 text-sm max-h-64 overflow-y-auto hide-scrollbar"></div>
+        </div>
+
+        <!-- AYUSH -->
+        <div id="p-ayush-section" class="bg-white rounded-2xl border border-ayush-200 p-5 md:col-span-2 hidden">
+          <h3 class="text-xs font-black text-ayush-800 mb-3"><i class="fa-solid fa-leaf text-ayush-600 mr-1"></i> AYUSH Pariksha</h3>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+            <div><span class="text-slate-500 text-[10px] font-bold uppercase">Prakriti</span><p id="p-prakriti" class="font-bold"></p></div>
+            <div><span class="text-slate-500 text-[10px] font-bold uppercase">Agni</span><p id="p-agni" class="font-bold"></p></div>
+            <div><span class="text-slate-500 text-[10px] font-bold uppercase">Koshtha</span><p id="p-koshtha" class="font-bold"></p></div>
+            <div><span class="text-slate-500 text-[10px] font-bold uppercase">Vikriti</span><p id="p-vikriti" class="font-bold"></p></div>
+          </div>
+        </div>
+
+        <!-- OCR Data -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 md:col-span-2">
+          <h3 class="text-xs font-black text-slate-900 mb-3"><i class="fa-solid fa-file-medical text-purple-500 mr-1"></i> OCR Extracted Data</h3>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+            <div><span class="text-slate-500 text-[10px] font-bold uppercase">Diagnosis</span><p id="p-ocr-dx" class="font-bold"></p></div>
+            <div><span class="text-slate-500 text-[10px] font-bold uppercase">Prescription</span><p id="p-ocr-rx" class="font-bold"></p></div>
+            <div><span class="text-slate-500 text-[10px] font-bold uppercase">Labs</span><p id="p-ocr-labs" class="font-bold"></p></div>
+            <div><span class="text-slate-500 text-[10px] font-bold uppercase">Procedures</span><p id="p-ocr-sx" class="font-bold"></p></div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="md:col-span-2 flex gap-3">
+          <button onclick="showDocuments()" class="flex-1 py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-2xl shadow-md transition-all">
+            <i class="fa-solid fa-file-lines mr-2"></i>View Documents
+          </button>
+          <button onclick="showReport()" class="flex-1 py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-md transition-all">
+            <i class="fa-solid fa-chart-column mr-2"></i>View Report
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DOCUMENTS SCREEN -->
+  <section id="screen-documents" class="screen-container hidden min-h-screen">
+    <div class="max-w-4xl mx-auto p-4">
+      <header class="flex items-center gap-3 mb-6">
+        <button onclick="navigateTo('screen-patient')" class="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-white">
+          <i class="fa-solid fa-arrow-left"></i>
+        </button>
+        <div>
+          <h1 class="text-lg font-black text-white">Documents</h1>
+          <p id="doc-patient-name" class="text-xs text-slate-400"></p>
+        </div>
+      </header>
+
+      <div id="docs-empty" class="hidden text-center py-20">
+        <i class="fa-solid fa-folder-open text-4xl text-slate-700 mb-3"></i>
+        <p class="text-slate-500 font-bold">No documents uploaded</p>
+      </div>
+
+      <div id="docs-list" class="space-y-4"></div>
+    </div>
+  </section>
+
+  <!-- REPORT SCREEN -->
+  <section id="screen-report" class="screen-container hidden min-h-screen">
+    <div class="max-w-4xl mx-auto p-4">
+      <header class="flex items-center gap-3 mb-6">
+        <button onclick="navigateTo('screen-patient')" class="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-white">
+          <i class="fa-solid fa-arrow-left"></i>
+        </button>
+        <div>
+          <h1 class="text-lg font-black text-white">Clinical Report</h1>
+          <p id="report-patient-name" class="text-xs text-slate-400"></p>
+        </div>
+      </header>
+
+      <div id="report-empty" class="hidden text-center py-20">
+        <i class="fa-solid fa-file-circle-xmark text-4xl text-slate-700 mb-3"></i>
+        <p class="text-slate-500 font-bold">No report generated yet</p>
+        <p class="text-xs text-slate-600 mt-1">Report will be generated from the kiosk</p>
+      </div>
+
+      <div id="report-content" class="hidden">
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 mb-4">
+          <h3 class="text-xs font-black text-slate-900 mb-3"><i class="fa-solid fa-file-medical text-brand-600 mr-1"></i> 14-Point Clinical Intake</h3>
+          <div id="report-summary" class="text-sm text-slate-700 whitespace-pre-wrap"></div>
+        </div>
+        <div class="bg-white rounded-2xl border border-slate-200 p-5">
+          <h3 class="text-xs font-black text-slate-900 mb-3"><i class="fa-solid fa-code text-slate-500 mr-1"></i> FHIR Bundle</h3>
+          <pre id="report-fhir" class="text-[10px] font-mono text-slate-600 bg-slate-50 p-3 rounded-xl max-h-80 overflow-y-auto hide-scrollbar"></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DOCUMENT VIEWER MODAL -->
+  <div id="modal-doc-viewer" class="hidden fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden">
+      <div class="flex items-center justify-between p-4 border-b">
+        <h3 id="viewer-title" class="text-sm font-black"></h3>
+        <button onclick="closeDocViewer()" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center">
+          <i class="fa-solid fa-xmark text-slate-600"></i>
+        </button>
+      </div>
+      <div class="p-4 overflow-y-auto max-h-[70vh] hide-scrollbar">
+        <img id="viewer-image" class="w-full rounded-xl mb-4 hidden" />
+        <div class="mb-4">
+          <h4 class="text-[10px] font-bold text-slate-500 uppercase mb-1">OCR Raw Text</h4>
+          <pre id="viewer-raw-text" class="text-xs font-mono bg-slate-50 p-3 rounded-xl whitespace-pre-wrap"></pre>
+        </div>
+        <div>
+          <h4 class="text-[10px] font-bold text-slate-500 uppercase mb-1">Structured Data</h4>
+          <div id="viewer-structured" class="grid grid-cols-2 gap-2 text-sm"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // =========================================================================
+    // STATE
+    // =========================================================================
+    const API_BASE = (window.location.hostname === "localhost"
+      ? window.location.origin
+      : "https://cdn3.emtypyie.in") + "/api/doctor";
+    let authToken = localStorage.getItem("doctorToken") || null;
+    let staffInfo = JSON.parse(localStorage.getItem("doctorStaff") || "null");
+    let currentPatientId = null;
+    let currentPatient = null;
+
+    let socket = null;
+    try {
+      if (typeof io !== "undefined") {
+        const wsUrl = window.location.hostname === "localhost"
+          ? window.location.origin
+          : "https://cdn3.emtypyie.in";
+        socket = io(wsUrl, { reconnection: false });
+        socket.on("token:issued", () => loadQueue());
+        socket.on("token:called", () => loadQueue());
+        socket.on("patient:update", () => { if (currentPatientId) loadPatient(currentPatientId); });
+        socket.on("connect_error", () => {});
+      }
+    } catch(e) {}
+
+    // =========================================================================
+    // API CLIENT
+    // =========================================================================
+    async function api(path, options = {}) {
+      const headers = { "Content-Type": "application/json", ...options.headers };
+      if (authToken) headers["Authorization"] = `Bearer ${authToken}`;
+      const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "API request failed");
+      return data;
+    }
+
+    // =========================================================================
+    // NAVIGATION
+    // =========================================================================
+    function navigateTo(screenId) {
+      document.querySelectorAll('.screen-container').forEach(sc => sc.classList.add('hidden'));
+      const target = document.getElementById(screenId);
+      if (target) target.classList.remove('hidden');
+      if (screenId === 'screen-queue') loadQueue();
+    }
+
+    // =========================================================================
+    // AUTH
+    // =========================================================================
+    async function doLogin() {
+      const username = document.getElementById("login-user").value.trim();
+      const password = document.getElementById("login-pass").value.trim();
+      const errEl = document.getElementById("login-error");
+      const btn = document.getElementById("login-btn");
+      if (!username || !password) { errEl.textContent = "Enter username and password"; errEl.classList.remove("hidden"); return; }
+      btn.disabled = true; btn.textContent = "Signing in...";
+      try {
+        const data = await api("/auth/login", { method: "POST", body: JSON.stringify({ username, password }) });
+        authToken = data.token;
+        staffInfo = data.staff;
+        localStorage.setItem("doctorToken", data.token);
+        localStorage.setItem("doctorStaff", JSON.stringify(data.staff));
+        document.getElementById("staff-name").textContent = data.staff.name;
+        navigateTo("screen-queue");
+      } catch (e) {
+        errEl.textContent = e.message; errEl.classList.remove("hidden");
+      } finally { btn.disabled = false; btn.textContent = "Sign In"; }
+    }
+
+    function doLogout() {
+      authToken = null; staffInfo = null;
+      localStorage.removeItem("doctorToken");
+      localStorage.removeItem("doctorStaff");
+      navigateTo("screen-login");
+    }
+
+    // =========================================================================
+    // QUEUE
+    // =========================================================================
+    async function loadQueue() {
+      if (!authToken) return;
+      try {
+        const data = await api("/queue");
+        const queue = data.queue || [];
+        document.getElementById("queue-count").textContent = `${queue.length} patient${queue.length !== 1 ? 's' : ''} waiting`;
+        const list = document.getElementById("queue-list");
+        const empty = document.getElementById("queue-empty");
+        if (!queue.length) { list.innerHTML = ""; empty.classList.remove("hidden"); return; }
+        empty.classList.add("hidden");
+        list.innerHTML = queue.map(t => {
+          const priorityLabel = t.priority === 1 ? "EMERGENCY" : t.priority === 2 ? "URGENT" : "ROUTINE";
+          const priorityColor = t.priority === 1 ? "bg-red-100 text-red-800" : t.priority === 2 ? "bg-amber-100 text-amber-800" : "bg-emerald-100 text-emerald-800";
+          const statusBadge = t.status === "called"
+            ? '<span class="text-[9px] bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded-full">CALLED</span>'
+            : '<span class="text-[9px] bg-slate-100 text-slate-600 font-bold px-2 py-0.5 rounded-full">WAITING</span>';
+          return `
+            <div class="bg-white rounded-2xl border border-slate-200 p-4 flex items-center justify-between">
+              <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-brand-50 flex items-center justify-center">
+                  <span class="font-mono text-lg font-black text-brand-700">${t.token_number}</span>
+                </div>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-sm font-black text-slate-900">${t.patient_name || 'Unknown'}</span>
+                    ${statusBadge}
+                  </div>
+                  <p class="text-[10px] text-slate-500 mt-0.5">${t.patient_abha || ''} &middot; ${t.chief_complaint || 'No complaint'}</p>
+                  <span class="inline-block mt-1 text-[9px] font-bold px-2 py-0.5 rounded-full ${priorityColor}">${priorityLabel}</span>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <button onclick="viewPatient('${t.patient_id}')" class="px-3 py-1.5 text-xs font-bold text-brand-600 border border-brand-200 rounded-xl hover:bg-brand-50">
+                  <i class="fa-solid fa-eye mr-1"></i>View
+                </button>
+                ${t.status === 'waiting'
+                  ? `<button onclick="callToken('${t.id}')" class="px-3 py-1.5 text-xs font-bold text-white bg-brand-600 rounded-xl hover:bg-brand-700"><i class="fa-solid fa-bell mr-1"></i>Call</button>`
+                  : `<button onclick="completeToken('${t.id}')" class="px-3 py-1.5 text-xs font-bold text-white bg-green-600 rounded-xl hover:bg-green-700"><i class="fa-solid fa-check mr-1"></i>Done</button>`
+                }
+              </div>
+            </div>`;
+        }).join("");
+      } catch (e) { console.error("Queue load failed:", e); }
+    }
+
+    async function callToken(id) {
+      try { await api(`/queue/${id}/call`, { method: "PUT" }); loadQueue(); } catch (e) { alert(e.message); }
+    }
+
+    async function completeToken(id) {
+      try { await api(`/queue/${id}/complete`, { method: "PUT" }); loadQueue(); } catch (e) { alert(e.message); }
+    }
+
+    // =========================================================================
+    // PATIENT
+    // =========================================================================
+    async function viewPatient(patientId) {
+      currentPatientId = patientId;
+      navigateTo("screen-patient");
+      await loadPatient(patientId);
+    }
+
+    async function loadPatient(id) {
+      try {
+        const data = await api(`/patient/${id}`);
+        const p = data.patient;
+        currentPatient = p;
+        document.getElementById("patient-name").textContent = p.name || "Unknown Patient";
+        document.getElementById("patient-meta").textContent = `${p.gender || ''} &middot; ${p.age || ''} yrs &middot; ${p.stream || ''}`;
+        document.getElementById("p-abha").textContent = p.abha || "N/A";
+        document.getElementById("p-age").textContent = p.age ? `${p.age} years` : "N/A";
+        document.getElementById("p-gender").textContent = p.gender || "N/A";
+        document.getElementById("p-stream").textContent = p.stream || "N/A";
+        document.getElementById("p-status").textContent = p.status || "N/A";
+        document.getElementById("p-bp").textContent = p.vitals?.bp || "N/A";
+        document.getElementById("p-sugar").textContent = p.vitals?.sugar || "N/A";
+        document.getElementById("p-pulse").textContent = p.vitals?.pulse || "N/A";
+        document.getElementById("p-complaint").textContent = p.chiefComplaint || "N/A";
+
+        const triageEl = document.getElementById("p-triage");
+        if (p.isRedFlag) {
+          triageEl.innerHTML = '<span class="text-red-600"><i class="fa-solid fa-triangle-exclamation mr-1"></i>PRIORITY 1 — EMERGENCY</span>';
+        } else {
+          triageEl.innerHTML = '<span class="text-emerald-600"><i class="fa-solid fa-check-circle mr-1"></i>PRIORITY 3 — ROUTINE</span>';
+        }
+
+        document.getElementById("p-allergies").innerHTML = p.allergies?.length
+          ? p.allergies.map(a => `<span class="inline-block text-[10px] bg-red-50 text-red-700 font-bold px-2 py-0.5 rounded-full mr-1 mb-1">${a}</span>`).join("")
+          : '<span class="text-xs text-slate-400">None reported</span>';
+        document.getElementById("p-diet").textContent = p.diet || "N/A";
+        document.getElementById("p-sleep").textContent = p.sleep || "N/A";
+
+        const interviewEl = document.getElementById("p-interview");
+        if (p.interviewAnswers?.length) {
+          interviewEl.innerHTML = p.interviewAnswers.map(a => `
+            <div class="flex items-start gap-2 p-2 ${a.isRed ? 'bg-red-50 rounded-lg' : ''}">
+              <i class="fa-solid ${a.isRed ? 'fa-circle-exclamation text-red-500' : 'fa-circle-check text-green-500'} mt-0.5"></i>
+              <div><span class="font-bold">${a.question}</span><br><span class="text-slate-600">${a.answer}</span></div>
+            </div>`).join("");
+        } else {
+          interviewEl.innerHTML = '<p class="text-xs text-slate-400">No interview data</p>';
+        }
+
+        const ayushSection = document.getElementById("p-ayush-section");
+        if (p.stream === "ayush" && (p.ayush?.prakriti || p.ayush?.agni)) {
+          ayushSection.classList.remove("hidden");
+          document.getElementById("p-prakriti").textContent = p.ayush.prakriti || "N/A";
+          document.getElementById("p-agni").textContent = p.ayush.agni || "N/A";
+          document.getElementById("p-koshtha").textContent = p.ayush.koshtha || "N/A";
+          document.getElementById("p-vikriti").textContent = p.ayush.vikriti || "N/A";
+        } else { ayushSection.classList.add("hidden"); }
+
+        document.getElementById("p-ocr-dx").textContent = p.ocr?.dx || "N/A";
+        document.getElementById("p-ocr-rx").textContent = p.ocr?.rx || "N/A";
+        document.getElementById("p-ocr-labs").textContent = p.ocr?.labs || "N/A";
+        document.getElementById("p-ocr-sx").textContent = p.ocr?.sx || "N/A";
+      } catch (e) { console.error("Load patient failed:", e); }
+    }
+
+    // =========================================================================
+    // DOCUMENTS
+    // =========================================================================
+    async function showDocuments() {
+      if (!currentPatientId) return;
+      navigateTo("screen-documents");
+      document.getElementById("doc-patient-name").textContent = currentPatient?.name || "";
+      try {
+        const data = await api(`/patient/${currentPatientId}/documents`);
+        const docs = data.documents || [];
+        const list = document.getElementById("docs-list");
+        const empty = document.getElementById("docs-empty");
+        if (!docs.length) { list.innerHTML = ""; empty.classList.remove("hidden"); return; }
+        empty.classList.add("hidden");
+        list.innerHTML = docs.map(d => {
+          const statusColor = d.status === "verified" ? "bg-green-100 text-green-800" : d.status === "rejected" ? "bg-red-100 text-red-800" : d.status === "unverified" ? "bg-amber-100 text-amber-800" : "bg-slate-100 text-slate-600";
+          return `
+            <div class="bg-white rounded-2xl border border-slate-200 p-4">
+              <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-2">
+                  <i class="fa-solid fa-file-image text-purple-500"></i>
+                  <span class="text-sm font-bold">${d.original_name}</span>
+                </div>
+                <span class="text-[9px] font-bold px-2 py-0.5 rounded-full ${statusColor}">${d.status.toUpperCase()}</span>
+              </div>
+              ${d.raw_ocr_text ? `<p class="text-xs text-slate-600 mb-3 line-clamp-2">${d.raw_ocr_text.substring(0, 200)}...</p>` : ''}
+              <div class="flex gap-2">
+                <button onclick="viewDocument(${d.id})" class="px-3 py-1.5 text-xs font-bold text-brand-600 border border-brand-200 rounded-xl hover:bg-brand-50">
+                  <i class="fa-solid fa-eye mr-1"></i>View
+                </button>
+                ${d.status === 'unverified' ? `
+                  <button onclick="verifyDoc(${d.id})" class="px-3 py-1.5 text-xs font-bold text-white bg-green-600 rounded-xl hover:bg-green-700">
+                    <i class="fa-solid fa-check mr-1"></i>Verify
+                  </button>
+                  <button onclick="rejectDoc(${d.id})" class="px-3 py-1.5 text-xs font-bold text-white bg-red-600 rounded-xl hover:bg-red-700">
+                    <i class="fa-solid fa-xmark mr-1"></i>Reject
+                  </button>` : ''}
+              </div>
+            </div>`;
+        }).join("");
+      } catch (e) { console.error("Load docs failed:", e); }
+    }
+
+    async function viewDocument(docId) {
+      try {
+        const data = await api(`/patient/${currentPatientId}/documents`);
+        const doc = (data.documents || []).find(d => d.id === docId);
+        if (!doc) return;
+        document.getElementById("viewer-title").textContent = doc.original_name;
+        const img = document.getElementById("viewer-image");
+        if (doc.webp_path) { img.src = `/api/ocr/${currentPatientId}/image/${doc.id}`; img.classList.remove("hidden"); }
+        else { img.classList.add("hidden"); }
+        document.getElementById("viewer-raw-text").textContent = doc.raw_ocr_text || "No text extracted";
+        document.getElementById("viewer-structured").innerHTML = `
+          <div><span class="text-[10px] font-bold text-slate-500 uppercase">Dx</span><p class="font-bold text-sm">${doc.structured_dx || 'N/A'}</p></div>
+          <div><span class="text-[10px] font-bold text-slate-500 uppercase">Rx</span><p class="font-bold text-sm">${doc.structured_rx || 'N/A'}</p></div>
+          <div><span class="text-[10px] font-bold text-slate-500 uppercase">Labs</span><p class="font-bold text-sm">${doc.structured_labs || 'N/A'}</p></div>
+          <div><span class="text-[10px] font-bold text-slate-500 uppercase">Sx</span><p class="font-bold text-sm">${doc.structured_sx || 'N/A'}</p></div>`;
+        document.getElementById("modal-doc-viewer").classList.remove("hidden");
+      } catch (e) { alert(e.message); }
+    }
+
+    function closeDocViewer() { document.getElementById("modal-doc-viewer").classList.add("hidden"); }
+
+    async function verifyDoc(id) {
+      try { await api(`/document/${id}/verify`, { method: "PUT" }); showDocuments(); if (currentPatientId) loadPatient(currentPatientId); } catch (e) { alert(e.message); }
+    }
+
+    async function rejectDoc(id) {
+      const reason = prompt("Rejection reason (optional):");
+      try { await api(`/document/${id}/reject`, { method: "PUT", body: JSON.stringify({ reason }) }); showDocuments(); } catch (e) { alert(e.message); }
+    }
+
+    // =========================================================================
+    // REPORT
+    // =========================================================================
+    async function showReport() {
+      if (!currentPatientId) return;
+      navigateTo("screen-report");
+      document.getElementById("report-patient-name").textContent = currentPatient?.name || "";
+      try {
+        const data = await api(`/patient/${currentPatientId}/report`);
+        if (!data.report) { document.getElementById("report-empty").classList.remove("hidden"); document.getElementById("report-content").classList.add("hidden"); return; }
+        document.getElementById("report-empty").classList.add("hidden");
+        document.getElementById("report-content").classList.remove("hidden");
+        document.getElementById("report-summary").textContent = data.report.summary || "No summary available";
+        document.getElementById("report-fhir").textContent = JSON.stringify(data.report.fhirBundle, null, 2);
+      } catch (e) { console.error("Load report failed:", e); }
+    }
+
+    // =========================================================================
+    // INIT
+    // =========================================================================
+    if (authToken && staffInfo) {
+      document.getElementById("staff-name").textContent = staffInfo.name;
+      navigateTo("screen-queue");
+    }
+
+    document.getElementById("login-pass").addEventListener("keydown", e => { if (e.key === "Enter") doLogin(); });
+    document.getElementById("login-user").addEventListener("keydown", e => { if (e.key === "Enter") document.getElementById("login-pass").focus(); });
+  </script>
+</body>
+</html>

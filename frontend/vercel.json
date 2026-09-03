@@ -1,7 +1,3 @@
 {
-  "version": 2,
-  "routes": [
-    { "src": "^/doctor$", "dest": "/doctor.html" },
-    { "src": "^/doctor/(.*)", "dest": "/doctor.html" }
-  ]
+  "cleanUrls": true
 }
