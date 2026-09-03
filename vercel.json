@@ -2,18 +2,18 @@
   "version": 2,
   "builds": [
     {
-      "src": "*.html",
+      "src": "frontend/*.html",
       "use": "@vercel/static"
     }
   ],
   "routes": [
     {
       "src": "/doctor(.*)",
-      "dest": "/doctor.html"
+      "dest": "/frontend/doctor.html"
     },
     {
       "src": "/(.*)",
-      "dest": "/index.html"
+      "dest": "/frontend/index.html"
     }
   ],
   "headers": [
