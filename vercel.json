@@ -1,20 +1,10 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "frontend/*.html",
-      "use": "@vercel/static"
-    }
-  ],
+  "outputDirectory": "frontend",
   "routes": [
-    {
-      "src": "/doctor(.*)",
-      "dest": "/frontend/doctor.html"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/frontend/index.html"
-    }
+    { "src": "/doctor", "dest": "/doctor.html" },
+    { "src": "/doctor/(.*)", "dest": "/doctor.html" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ],
   "headers": [
     {
