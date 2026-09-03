@@ -2,6 +2,8 @@
 
 The server that powers MediKiosk — handles patient data, authentication, queue management, document processing, and everything the frontend needs.
 
+> **Note:** This is the initial prototype. Core flow works end-to-end. Real ABDM APIs, production security hardening, and scalability improvements are planned for next phase.
+
 **Problem ID:** SIH26047 | **Team:** EmtyBrains | **Hackathon:** SIH 2026, IIT Madras
 
 ## What is this?

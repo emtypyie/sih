@@ -12,6 +12,8 @@
 
 MediKiosk is a patient case and treatment history tracking system. It helps patients record their full medical history — through talking or touching a screen — and digitizes their old prescriptions and lab reports. Everything gets organized into a clean summary that the doctor can see before the patient even walks into the room.
 
+> **Note:** This is the initial prototype built during the hackathon. It demonstrates the core concept and flow. Production-ready features like real ABDM integration, voice AI, and multi-language OCR are planned for the next phase.
+
 ## The Problem (SIH26047)
 
 Right now, there's no good way for patients to sit down and properly record their own medical history. They can't easily talk through their symptoms, upload old prescriptions, or build a treatment record that follows them across visits. Doctors start from scratch every time. Paper forms get lost. Information slips through the cracks.
