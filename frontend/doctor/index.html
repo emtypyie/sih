@@ -370,6 +370,7 @@
         if (!queue.length) { list.innerHTML = ""; empty.classList.remove("hidden"); return; }
         empty.classList.add("hidden");
         list.innerHTML = queue.map(t => {
+          const p = t.patientId || {};
           const priorityLabel = t.priority === 1 ? "EMERGENCY" : t.priority === 2 ? "URGENT" : "ROUTINE";
           const priorityColor = t.priority === 1 ? "bg-red-100 text-red-800" : t.priority === 2 ? "bg-amber-100 text-amber-800" : "bg-emerald-100 text-emerald-800";
           const statusBadge = t.status === "called"
@@ -379,24 +380,24 @@
             <div class="bg-white rounded-2xl border border-slate-200 p-4 flex items-center justify-between">
               <div class="flex items-center gap-4">
                 <div class="w-12 h-12 rounded-xl bg-brand-50 flex items-center justify-center">
-                  <span class="font-mono text-lg font-black text-brand-700">${t.token_number}</span>
+                  <span class="font-mono text-lg font-black text-brand-700">${t.tokenNumber}</span>
                 </div>
                 <div>
                   <div class="flex items-center gap-2">
-                    <span class="text-sm font-black text-slate-900">${t.patient_name || 'Unknown'}</span>
+                    <span class="text-sm font-black text-slate-900">${p.name || 'Unknown'}</span>
                     ${statusBadge}
                   </div>
-                  <p class="text-[10px] text-slate-500 mt-0.5">${t.patient_abha || ''} &middot; ${t.chief_complaint || 'No complaint'}</p>
+                  <p class="text-[10px] text-slate-500 mt-0.5">${p.abha || ''} &middot; ${p.chiefComplaint || 'No complaint'}</p>
                   <span class="inline-block mt-1 text-[9px] font-bold px-2 py-0.5 rounded-full ${priorityColor}">${priorityLabel}</span>
                 </div>
               </div>
               <div class="flex items-center gap-2">
-                <button onclick="viewPatient('${t.patient_id}')" class="px-3 py-1.5 text-xs font-bold text-brand-600 border border-brand-200 rounded-xl hover:bg-brand-50">
+                <button onclick="viewPatient('${p._id}')" class="px-3 py-1.5 text-xs font-bold text-brand-600 border border-brand-200 rounded-xl hover:bg-brand-50">
                   <i class="fa-solid fa-eye mr-1"></i>View
                 </button>
                 ${t.status === 'waiting'
-                  ? `<button onclick="callToken('${t.id}')" class="px-3 py-1.5 text-xs font-bold text-white bg-brand-600 rounded-xl hover:bg-brand-700"><i class="fa-solid fa-bell mr-1"></i>Call</button>`
-                  : `<button onclick="completeToken('${t.id}')" class="px-3 py-1.5 text-xs font-bold text-white bg-green-600 rounded-xl hover:bg-green-700"><i class="fa-solid fa-check mr-1"></i>Done</button>`
+                  ? `<button onclick="callToken('${t._id}')" class="px-3 py-1.5 text-xs font-bold text-white bg-brand-600 rounded-xl hover:bg-brand-700"><i class="fa-solid fa-bell mr-1"></i>Call</button>`
+                  : `<button onclick="completeToken('${t._id}')" class="px-3 py-1.5 text-xs font-bold text-white bg-green-600 rounded-xl hover:bg-green-700"><i class="fa-solid fa-check mr-1"></i>Done</button>`
                 }
               </div>
             </div>`;
@@ -405,11 +406,11 @@
     }
 
     async function callToken(id) {
-      try { await api(`/queue/${id}/call`, { method: "PUT" }); loadQueue(); } catch (e) { alert(e.message); }
+      try { await api(`/token/${id}/call`, { method: "PUT" }); loadQueue(); } catch (e) { alert(e.message); }
     }
 
     async function completeToken(id) {
-      try { await api(`/queue/${id}/complete`, { method: "PUT" }); loadQueue(); } catch (e) { alert(e.message); }
+      try { await api(`/token/${id}/complete`, { method: "PUT" }); loadQueue(); } catch (e) { alert(e.message); }
     }
 
     // =========================================================================
@@ -499,20 +500,20 @@
               <div class="flex items-center justify-between mb-3">
                 <div class="flex items-center gap-2">
                   <i class="fa-solid fa-file-image text-purple-500"></i>
-                  <span class="text-sm font-bold">${d.original_name}</span>
+                  <span class="text-sm font-bold">${d.originalName}</span>
                 </div>
                 <span class="text-[9px] font-bold px-2 py-0.5 rounded-full ${statusColor}">${d.status.toUpperCase()}</span>
               </div>
-              ${d.raw_ocr_text ? `<p class="text-xs text-slate-600 mb-3 line-clamp-2">${d.raw_ocr_text.substring(0, 200)}...</p>` : ''}
+              ${d.rawOcrText ? `<p class="text-xs text-slate-600 mb-3 line-clamp-2">${d.rawOcrText.substring(0, 200)}...</p>` : ''}
               <div class="flex gap-2">
-                <button onclick="viewDocument(${d.id})" class="px-3 py-1.5 text-xs font-bold text-brand-600 border border-brand-200 rounded-xl hover:bg-brand-50">
+                <button onclick="viewDocument('${d._id}')" class="px-3 py-1.5 text-xs font-bold text-brand-600 border border-brand-200 rounded-xl hover:bg-brand-50">
                   <i class="fa-solid fa-eye mr-1"></i>View
                 </button>
                 ${d.status === 'unverified' ? `
-                  <button onclick="verifyDoc(${d.id})" class="px-3 py-1.5 text-xs font-bold text-white bg-green-600 rounded-xl hover:bg-green-700">
+                  <button onclick="verifyDoc('${d._id}')" class="px-3 py-1.5 text-xs font-bold text-white bg-green-600 rounded-xl hover:bg-green-700">
                     <i class="fa-solid fa-check mr-1"></i>Verify
                   </button>
-                  <button onclick="rejectDoc(${d.id})" class="px-3 py-1.5 text-xs font-bold text-white bg-red-600 rounded-xl hover:bg-red-700">
+                  <button onclick="rejectDoc('${d._id}')" class="px-3 py-1.5 text-xs font-bold text-white bg-red-600 rounded-xl hover:bg-red-700">
                     <i class="fa-solid fa-xmark mr-1"></i>Reject
                   </button>` : ''}
               </div>
@@ -524,18 +525,18 @@
     async function viewDocument(docId) {
       try {
         const data = await api(`/patient/${currentPatientId}/documents`);
-        const doc = (data.documents || []).find(d => d.id === docId);
+        const doc = (data.documents || []).find(d => d._id === docId);
         if (!doc) return;
-        document.getElementById("viewer-title").textContent = doc.original_name;
+        document.getElementById("viewer-title").textContent = doc.originalName;
         const img = document.getElementById("viewer-image");
-        if (doc.webp_path) { img.src = `/api/ocr/${currentPatientId}/image/${doc.id}`; img.classList.remove("hidden"); }
+        if (doc.webpPath) { img.src = doc.webpPath; img.classList.remove("hidden"); }
         else { img.classList.add("hidden"); }
-        document.getElementById("viewer-raw-text").textContent = doc.raw_ocr_text || "No text extracted";
+        document.getElementById("viewer-raw-text").textContent = doc.rawOcrText || "No text extracted";
         document.getElementById("viewer-structured").innerHTML = `
-          <div><span class="text-[10px] font-bold text-slate-500 uppercase">Dx</span><p class="font-bold text-sm">${doc.structured_dx || 'N/A'}</p></div>
-          <div><span class="text-[10px] font-bold text-slate-500 uppercase">Rx</span><p class="font-bold text-sm">${doc.structured_rx || 'N/A'}</p></div>
-          <div><span class="text-[10px] font-bold text-slate-500 uppercase">Labs</span><p class="font-bold text-sm">${doc.structured_labs || 'N/A'}</p></div>
-          <div><span class="text-[10px] font-bold text-slate-500 uppercase">Sx</span><p class="font-bold text-sm">${doc.structured_sx || 'N/A'}</p></div>`;
+          <div><span class="text-[10px] font-bold text-slate-500 uppercase">Dx</span><p class="font-bold text-sm">${doc.structuredDx || 'N/A'}</p></div>
+          <div><span class="text-[10px] font-bold text-slate-500 uppercase">Rx</span><p class="font-bold text-sm">${doc.structuredRx || 'N/A'}</p></div>
+          <div><span class="text-[10px] font-bold text-slate-500 uppercase">Labs</span><p class="font-bold text-sm">${doc.structuredLabs || 'N/A'}</p></div>
+          <div><span class="text-[10px] font-bold text-slate-500 uppercase">Sx</span><p class="font-bold text-sm">${doc.structuredSx || 'N/A'}</p></div>`;
         document.getElementById("modal-doc-viewer").classList.remove("hidden");
       } catch (e) { alert(e.message); }
     }
