@@ -4,6 +4,8 @@ Node.js backend for the MediKiosk hospital patient intake system.
 
 **Problem ID:** SIH26047 | **Team:** EmtyBrains | **Hackathon:** SIH 2026, IIT Madras
 
+**Problem:** There is no purpose-built, patient-facing software platform that enables patients to independently and comprehensively record their medical history — through both natural spoken conversation and guided touchscreen interaction — and simultaneously digitize their existing physical medical documents, generating a structured, physician-ready clinical history summary that integrates with the hospital information system and the ABDM ecosystem before the patient enters the consultation room.
+
 ## Quick Start
 
 ```bash

@@ -10,13 +10,13 @@
 
 An AI-powered hospital kiosk system that digitizes patient intake — from registration to doctor handoff — reducing wait times and eliminating paper forms.
 
-## Problem
+## Problem Statement (SIH26047)
 
-Hospitals in India still rely on paper-based registration. Patients fill forms by hand, wait in long queues, and doctors receive incomplete information. There's no standardization, no triage, and no digital trail.
+There is no purpose-built, patient-facing software platform that enables patients to independently and comprehensively record their medical history — through both natural spoken conversation and guided touchscreen interaction — and simultaneously digitize their existing physical medical documents, generating a structured, physician-ready clinical history summary that integrates with the hospital information system and the ABDM ecosystem before the patient enters the consultation room.
 
-## Solution
+## Our Solution
 
-MediKiosk replaces the entire paper intake process with a smart kiosk:
+MediKiosk solves this end-to-end:
 
 ```
 Patient arrives → ABHA/OTP auth → Demographics → AI Interview → Vitals →
