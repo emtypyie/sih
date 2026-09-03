@@ -1,9 +1,8 @@
 import { Patient } from "../models/Patient.js";
-import { NotFoundError } from "../utils/errors.js";
 
 export async function generateFHIR(patientId) {
-  const patient = Patient.findById(patientId);
-  if (!patient) throw new NotFoundError("Patient");
+  const patient = await Patient.findById(patientId);
+  if (!patient) throw new Error("Patient not found");
 
   const bundle = {
     resourceType: "Bundle",

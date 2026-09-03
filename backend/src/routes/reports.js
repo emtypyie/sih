@@ -4,7 +4,6 @@ import { Report } from "../models/Report.js";
 import { authenticate } from "../middleware/auth.js";
 import { generateReport, getReport } from "../services/reportService.js";
 import { generateFHIR } from "../services/fhirService.js";
-import { NotFoundError } from "../utils/errors.js";
 
 const router = Router();
 router.use(authenticate);
@@ -36,8 +35,8 @@ router.get("/:patientId/fhir", async (req, res, next) => {
 
 router.get("/doctor/:patientId", async (req, res, next) => {
   try {
-    const patient = Patient.findById(req.params.patientId);
-    if (!patient) throw new NotFoundError("Patient");
+    const patient = await Patient.findById(req.params.patientId);
+    if (!patient) return res.status(404).json({ success: false, error: "Patient not found" });
     let report = null;
     try { report = await getReport(req.params.patientId); } catch { report = null; }
     res.json({ success: true, patient, report: report?.summary || null, structuredReport: report?.structuredReport || null });

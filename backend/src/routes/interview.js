@@ -2,15 +2,14 @@ import { Router } from "express";
 import { Patient } from "../models/Patient.js";
 import { authenticate } from "../middleware/auth.js";
 import { getQuestions, checkRedFlags } from "../services/interviewService.js";
-import { NotFoundError, ValidationError } from "../utils/errors.js";
 
 const router = Router();
 router.use(authenticate);
 
 router.get("/:patientId/questions", async (req, res, next) => {
   try {
-    const patient = Patient.findById(req.params.patientId);
-    if (!patient) throw new NotFoundError("Patient");
+    const patient = await Patient.findById(req.params.patientId);
+    if (!patient) return res.status(404).json({ success: false, error: "Patient not found" });
     const questions = getQuestions(patient.chiefComplaint);
     res.json({ success: true, questions, total: questions.length });
   } catch (err) { next(err); }
@@ -19,16 +18,16 @@ router.get("/:patientId/questions", async (req, res, next) => {
 router.post("/:patientId/answers", async (req, res, next) => {
   try {
     const { answers } = req.body;
-    if (!Array.isArray(answers)) throw new ValidationError("answers must be an array");
+    if (!Array.isArray(answers)) return res.status(400).json({ success: false, error: "answers must be an array" });
 
-    const patient = Patient.findById(req.params.patientId);
-    if (!patient) throw new NotFoundError("Patient");
+    const patient = await Patient.findById(req.params.patientId);
+    if (!patient) return res.status(404).json({ success: false, error: "Patient not found" });
 
     const formatted = answers.map((a) => ({ question: a.question || "", answer: a.answer || "", isRed: !!a.isRed }));
     const isRedFlag = checkRedFlags(formatted);
     const triagePriority = isRedFlag ? 1 : 3;
 
-    Patient.findByIdAndUpdate(req.params.patientId, {
+    await Patient.findByIdAndUpdate(req.params.patientId, {
       interviewAnswers: formatted,
       isRedFlag,
       triagePriority,
@@ -43,8 +42,8 @@ router.post("/:patientId/answers", async (req, res, next) => {
 
 router.get("/:patientId/progress", async (req, res, next) => {
   try {
-    const patient = Patient.findById(req.params.patientId);
-    if (!patient) throw new NotFoundError("Patient");
+    const patient = await Patient.findById(req.params.patientId);
+    if (!patient) return res.status(404).json({ success: false, error: "Patient not found" });
     res.json({ success: true, answersCount: (patient.interviewAnswers || []).length, isRedFlag: patient.isRedFlag });
   } catch (err) { next(err); }
 });

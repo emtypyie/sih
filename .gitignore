@@ -3,8 +3,5 @@ backend/node_modules/
 backend/uploads/*
 !backend/uploads/.gitkeep
 backend/.env
-backend/medikiosk.db
-backend/medikiosk.db-shm
-backend/medikiosk.db-wal
 *.log
 .DS_Store

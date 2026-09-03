@@ -1,10 +1,9 @@
 import { Patient } from "../models/Patient.js";
 import { Report } from "../models/Report.js";
-import { NotFoundError } from "../utils/errors.js";
 
 export async function generateReport(patientId) {
-  const patient = Patient.findById(patientId);
-  if (!patient) throw new NotFoundError("Patient");
+  const patient = await Patient.findById(patientId);
+  if (!patient) throw new Error("Patient not found");
 
   const lines = [];
   lines.push(`=== 14-POINT CLINICAL INTAKE SUMMARY ===`);
@@ -46,7 +45,7 @@ export async function generateReport(patientId) {
   });
 
   const summary = lines.join("\n");
-  const structured = JSON.stringify({
+  const structured = {
     demographics: { name: patient.name, age: patient.age, gender: patient.gender, abha: patient.abha },
     chiefComplaint: patient.chiefComplaint,
     triage: patient.isRedFlag ? "Priority 1" : "Priority 3",
@@ -55,15 +54,19 @@ export async function generateReport(patientId) {
     ros: patient.ros, family: patient.family,
     ayush: patient.stream === "ayush" ? patient.ayush : undefined,
     ocr: patient.ocr,
-  });
+  };
 
-  const report = Report.upsert(patientId, { summary, structuredReport: structured });
-  Patient.findByIdAndUpdate(patientId, { status: "completed" });
+  const report = await Report.findOneAndUpdate(
+    { patientId },
+    { summary, structuredReport: structured },
+    { new: true, upsert: true }
+  );
+  await Patient.findByIdAndUpdate(patientId, { status: "completed" });
   return report;
 }
 
 export async function getReport(patientId) {
-  const report = Report.findByPatientId(patientId);
-  if (!report) throw new NotFoundError("Report");
+  const report = await Report.findOne({ patientId });
+  if (!report) throw new Error("Report not found");
   return report;
 }

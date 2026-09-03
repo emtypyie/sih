@@ -6,7 +6,6 @@ import { sendOTP, verifyOTP } from "../services/otpService.js";
 import { lookupByABHA, createGuest, createFromPhone } from "../services/abhaService.js";
 import { authenticate } from "../middleware/auth.js";
 import { Patient } from "../models/Patient.js";
-import { NotFoundError } from "../utils/errors.js";
 
 const router = Router();
 
@@ -51,8 +50,8 @@ router.post("/guest", async (req, res, next) => {
 
 router.get("/me", authenticate, async (req, res, next) => {
   try {
-    const patient = Patient.findById(req.patientId);
-    if (!patient) throw new NotFoundError("Patient");
+    const patient = await Patient.findById(req.patientId);
+    if (!patient) return res.status(404).json({ success: false, error: "Patient not found" });
     res.json({ success: true, patient });
   } catch (err) { next(err); }
 });

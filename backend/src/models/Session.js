@@ -1,31 +1,12 @@
-import { db, genId, now } from "../config/db.js";
+import mongoose from "mongoose";
 
-const Session = {
-  create(data) {
-    const id = genId();
-    db.prepare("INSERT INTO sessions (id, phone, otp, expires_at, verified) VALUES (?, ?, ?, ?, 0)")
-      .run(id, data.phone, data.otp, data.expiresAt);
-    return this.findById(id);
-  },
-  findById(id) {
-    return db.prepare("SELECT * FROM sessions WHERE id = ?").get(id) || null;
-  },
-  findOne(query) {
-    let sql = "SELECT * FROM sessions WHERE verified = 0";
-    const vals = [];
-    if (query.phone) { sql += " AND phone = ?"; vals.push(query.phone); }
-    sql += " ORDER BY id DESC LIMIT 1";
-    return db.prepare(sql).get(...vals) || null;
-  },
-  update(id, data) {
-    const fields = [];
-    const vals = [];
-    if (data.verified !== undefined) { fields.push("verified = ?"); vals.push(data.verified ? 1 : 0); }
-    if (fields.length) { vals.push(id); db.prepare(`UPDATE sessions SET ${fields.join(", ")} WHERE id = ?`).run(...vals); }
-  },
-  deleteExpired() {
-    db.prepare("DELETE FROM sessions WHERE expires_at < datetime('now')").run();
-  },
-};
+const sessionSchema = new mongoose.Schema({
+  phone: { type: String, required: true },
+  otp: { type: String, required: true },
+  expiresAt: { type: Date, required: true },
+  verified: { type: Boolean, default: false },
+}, { timestamps: true });
 
-export { Session };
+sessionSchema.index({ phone: 1, verified: 1 });
+
+export const Session = mongoose.model("Session", sessionSchema);

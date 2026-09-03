@@ -1,5 +1,4 @@
 import { Patient } from "../models/Patient.js";
-import { NotFoundError } from "../utils/errors.js";
 
 const DEMO_PATIENTS = {
   "rahul456@abdm": {
@@ -36,9 +35,9 @@ const DEMO_PATIENTS = {
 export async function lookupByABHA(abhaId) {
   const normalized = abhaId.trim().toLowerCase();
   const demo = DEMO_PATIENTS[normalized];
-  if (!demo) throw new NotFoundError("ABHA ID");
-  let patient = Patient.findOne({ abha: normalized });
-  if (!patient) patient = Patient.create({ ...demo });
+  if (!demo) throw new Error("ABHA ID not found");
+  let patient = await Patient.findOne({ abha: normalized });
+  if (!patient) patient = await Patient.create({ ...demo });
   return patient;
 }
 
@@ -47,7 +46,7 @@ export async function createGuest() {
 }
 
 export async function createFromPhone(phone) {
-  let patient = Patient.findOne({ phone });
-  if (!patient) patient = Patient.create({ phone, abha: `ABHA-${phone}` });
+  let patient = await Patient.findOne({ phone });
+  if (!patient) patient = await Patient.create({ phone, abha: `ABHA-${phone}` });
   return patient;
 }

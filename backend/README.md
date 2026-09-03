@@ -17,14 +17,19 @@ npm start
 |-------|-----------|
 | Runtime | Node.js (ES Modules) |
 | Framework | Express.js |
-| Database | SQLite (better-sqlite3) |
+| Database | MongoDB (Mongoose) |
 | Real-time | Socket.io |
-| OCR | Tesseract.js (server-side) |
 | Auth | JWT (jsonwebtoken) |
 | Validation | Zod |
 | File Upload | Multer |
 | SMS OTP | Fast2SMS API |
 | Logging | Pino |
+
+## Deployment
+
+- **Backend**: Render (Node.js service)
+- **Frontend**: Vercel (static HTML)
+- **Database**: MongoDB Atlas
 
 ## Project Structure
 
@@ -33,33 +38,32 @@ backend/
 ├── server.js                 # Entry point - Express + Socket.io setup
 ├── seed.js                   # Seed demo ABHA patients
 ├── .env                      # Environment variables
-├── medikiosk.db              # SQLite database (auto-created)
 ├── uploads/                  # Uploaded documents
 └── src/
     ├── config/
-    │   ├── db.js             # SQLite connection + schema
+    │   ├── db.js             # MongoDB connection
     │   └── env.js            # Env var validation
     ├── middleware/
     │   ├── auth.js           # JWT verification
     │   ├── errorHandler.js   # Central error handler
     │   └── upload.js         # Multer file upload config
     ├── models/
-    │   ├── Patient.js        # Patient CRUD + arrays (allergies, ROS, family)
+    │   ├── Patient.js        # Patient schema (demographics, vitals, AYUSH, OCR)
     │   ├── Session.js        # OTP sessions
     │   ├── Token.js          # Queue tokens
-    │   └── Report.js         # Clinical reports
+    │   ├── Report.js         # Clinical reports
+    │   └── Document.js       # OCR documents with verification
     ├── routes/
-    │   ├── auth.js           # Auth endpoints
+    │   ├── auth.js           # Patient auth (OTP, ABHA, guest)
     │   ├── patients.js       # Patient data endpoints
     │   ├── interview.js      # AI interview endpoints
-    │   ├── ocr.js            # Document OCR endpoints
     │   ├── tokens.js         # Queue token endpoints
-    │   └── reports.js        # Report generation endpoints
+    │   ├── reports.js        # Report generation endpoints
+    │   └── doctor.js         # Doctor panel endpoints (auth, queue, verify)
     ├── services/
     │   ├── otpService.js     # OTP generation + Fast2SMS
     │   ├── abhaService.js    # ABHA lookup + demo data
     │   ├── interviewService.js # Adaptive question engine
-    │   ├── ocrService.js     # Tesseract.js wrapper
     │   ├── reportService.js  # 14-point clinical summary
     │   └── fhirService.js    # FHIR R4 bundle export
     ├── socket/
@@ -75,16 +79,18 @@ backend/
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `PORT` | `3000` | Server port |
+| `MONGODB_URI` | `mongodb://localhost:27017/medikiosk` | MongoDB connection string |
 | `JWT_SECRET` | — | Secret key for JWT signing |
 | `JWT_EXPIRES_IN` | `24h` | Token expiry duration |
 | `FAST2SMS_API_KEY` | `YOUR_FAST2SMS_API_KEY_HERE` | Fast2SMS API key for OTP |
 | `OTP_EXPIRY_MINUTES` | `5` | OTP validity in minutes |
 | `ALLOWED_ORIGINS` | `http://localhost:3000` | CORS allowed origins |
 | `NODE_ENV` | `development` | Environment mode |
+| `OCR_SERVICE_URL` | `http://localhost:3001` | Python OCR service URL |
 
 ## API Endpoints
 
-### Authentication
+### Patient Authentication
 
 | Method | Endpoint | Body | Description |
 |--------|----------|------|-------------|
@@ -119,8 +125,8 @@ backend/
 
 | Method | Endpoint | Body | Description |
 |--------|----------|------|-------------|
-| `POST` | `/api/ocr/upload` | `multipart: document, patientId` | Upload + process document |
-| `GET` | `/api/ocr/:patientId/results` | — | Get OCR results |
+| `POST` | `/api/ocr/upload` | `multipart: document, patientId` | Proxy to Python OCR service |
+| `GET` | `/api/ocr/:patientId` | — | Get OCR results |
 
 ### Tokens (requires JWT)
 
@@ -141,11 +147,24 @@ backend/
 | `GET` | `/api/reports/:patientId/fhir` | — | Download FHIR R4 JSON |
 | `GET` | `/api/reports/doctor/:patientId` | — | Doctor dashboard view |
 
+### Doctor Panel (requires doctor JWT)
+
+| Method | Endpoint | Body | Description |
+|--------|----------|------|-------------|
+| `POST` | `/api/doctor/auth/login` | `{ username, password }` | Staff login |
+| `GET` | `/api/doctor/queue` | — | Get all active tokens |
+| `PUT` | `/api/doctor/token/:id/call` | — | Call patient |
+| `PUT` | `/api/doctor/token/:id/complete` | — | Complete visit |
+| `GET` | `/api/doctor/patient/:id` | — | Full patient detail |
+| `GET` | `/api/doctor/patient/:id/documents` | — | Get patient documents |
+| `PUT` | `/api/doctor/document/:id/verify` | — | Verify OCR document |
+| `PUT` | `/api/doctor/document/:id/reject` | `{ reason }` | Reject OCR document |
+
 ### Utility
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `GET` | `/api/health` | Health check (returns `{ status: "ok" }`) |
+| `GET` | `/api/health` | Health check |
 
 ## WebSocket Events
 
@@ -155,20 +174,6 @@ backend/
 | `token:issued` | Server → Client | `{ token, patientId, counter, priority }` |
 | `token:called` | Server → Client | `{ token, counter }` |
 
-## Database Schema
-
-SQLite tables created automatically on first run:
-
-- **patients** — Main patient record (demographics, vitals, AYUSH, OCR, triage)
-- **patient_allergies** — Allergy list (FK → patients)
-- **patient_ros** — Review of systems symptoms (FK → patients)
-- **patient_family** — Family history (FK → patients)
-- **interview_answers** — AI interview Q&A (FK → patients)
-- **patient_documents** — Uploaded file records (FK → patients)
-- **sessions** — OTP sessions (phone, OTP, expiry)
-- **tokens** — Queue tokens (priority, counter, status)
-- **reports** — Generated clinical summaries + FHIR bundles
-
 ## Demo ABHA IDs
 
 | ABHA ID | Patient | Complaint |
@@ -177,10 +182,17 @@ SQLite tables created automatically on first run:
 | `priya123@abdm` | Priya Sharma, 32F | Fever |
 | `amit789@abdm` | Amit Verma, 48M | Diabetes Follow Up |
 
+## Doctor Panel Credentials
+
+| Username | Password | Role |
+|----------|----------|------|
+| `admin` | `admin123` | Admin |
+| `doctor` | `doctor123` | Doctor |
+
 ## Scripts
 
 ```bash
 npm start          # Production start
 npm run dev        # Development with file watch
-npm run seed       # Seed demo patients
+npm run seed       # Seed demo patients (requires MongoDB)
 ```

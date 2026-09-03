@@ -7,10 +7,10 @@ import { logger } from "../utils/logger.js";
 
 export async function sendOTP(phone) {
   const otp = generateOTP();
-  const expiresAt = new Date(Date.now() + env.OTP_EXPIRY_MINUTES * 60 * 1000).toISOString();
+  const expiresAt = new Date(Date.now() + env.OTP_EXPIRY_MINUTES * 60 * 1000);
 
-  Session.deleteExpired();
-  Session.create({ phone, otp, expiresAt });
+  await Session.deleteMany({ phone, verified: false });
+  await Session.create({ phone, otp, expiresAt });
 
   if (env.FAST2SMS_API_KEY && env.FAST2SMS_API_KEY !== "YOUR_FAST2SMS_API_KEY_HERE") {
     try {
@@ -31,13 +31,13 @@ export async function sendOTP(phone) {
 }
 
 export async function verifyOTP(phone, otp) {
-  const session = Session.findOne({ phone });
+  const session = await Session.findOne({ phone, verified: false }).sort({ createdAt: -1 });
   if (!session) throw new AppError("No active OTP session", 400);
-  if (new Date() > new Date(session.expires_at)) {
-    Session.update(session.id, { verified: true });
+  if (new Date() > session.expiresAt) {
+    await Session.findByIdAndUpdate(session._id, { verified: true });
     throw new AppError("OTP expired", 400);
   }
   if (session.otp !== otp) throw new AppError("Invalid OTP", 400);
-  Session.update(session.id, { verified: true });
+  await Session.findByIdAndUpdate(session._id, { verified: true });
   return session;
 }
