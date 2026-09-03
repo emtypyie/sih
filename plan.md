@@ -32,7 +32,7 @@
 | Service | Platform | URL |
 |---------|----------|-----|
 | Frontend | Vercel | `https://medikiosk.emtypyie.in` |
-| Backend | Render | `https://cdn3.emtypyie.in` |
+| Backend | Render | `https://sih2026-otfr.onrender.com` |
 | Database | MongoDB Atlas | Connection string in `.env` |
 | OCR | Local/Cloud | Port 3001 (built by OCR team) |
 

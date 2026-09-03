@@ -36,7 +36,7 @@ The key thing — it's not just collecting data for one visit. It builds a **tre
 |------|-------|
 | Kiosk (patient screen) | [medikiosk.emtypyie.in](https://medikiosk.emtypyie.in) |
 | Doctor panel | [medikiosk.emtypyie.in/doctor](https://medikiosk.emtypyie.in/doctor) |
-| Backend API | [cdn3.emtypyie.in](https://cdn3.emtypyie.in/api/health) |
+| Backend API | [sih2026-otfr.onrender.com](https://sih2026-otfr.onrender.com/api/health) |
 
 ## What it does
 
