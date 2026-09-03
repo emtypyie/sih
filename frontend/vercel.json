@@ -1,6 +1,4 @@
 {
-  "version": 2,
-  "outputDirectory": "frontend",
   "rewrites": [
     { "source": "/doctor", "destination": "/doctor.html" },
     { "source": "/doctor/:match*", "destination": "/doctor.html" }
